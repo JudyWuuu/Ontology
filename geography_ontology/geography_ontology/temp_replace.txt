@@ -1,0 +1,161 @@
+﻿async initGeoMap(view) {
+            if (view !== 'graph') return;
+            await this.$nextTick(); // Wait for DOM
+            
+            const container = document.getElementById('geo-map-container');
+            if (!container) return;
+
+            if (!this.geoChartInstance) {
+                this.geoChartInstance = echarts.init(container);
+                
+                // Fetch China GeoJSON
+                if (!this.chinaGeoJson) {
+                    try {
+                        const res = await fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json');
+                        this.chinaGeoJson = await res.json();
+                        echarts.registerMap('china', this.chinaGeoJson);
+                    } catch (e) {
+                        console.error('Failed to load China map geojson', e);
+                        return;
+                    }
+                }
+
+                this.resetGeoMap();
+
+                // Window resize
+                window.addEventListener('resize', () => {
+                    if (this.geoChartInstance) this.geoChartInstance.resize();
+                });
+
+                // Double click point to drill down to graph
+                this.geoChartInstance.on('dblclick', (params) => {
+                    if (params.seriesType === 'effectScatter' && params.data.item.id === '590870') {
+                        // Smooth transition zoom in
+                        this.geoChartInstance.setOption({
+                            geo: { center: params.value.slice(0,2), zoom: 20, animationDurationUpdate: 1000 }
+                        });
+                        setTimeout(() => {
+                            this.renderOntologyGraph();
+                        }, 800);
+                    }
+                });
+
+                // Click node in graph to show detail
+                this.geoChartInstance.on('click', (params) => {
+                    if (this.isGraphMode && params.seriesType === 'graph') {
+                        this.selectedNode = params.data;
+                    }
+                });
+            } else {
+                this.geoChartInstance.resize();
+            }
+        },
+
+        getGeoMapOption() {
+            return {
+                backgroundColor: 'transparent',
+                tooltip: { 
+                    trigger: 'item',
+                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                    borderColor: '#334155',
+                    textStyle: { color: '#e2e8f0' }
+                },
+                geo: {
+                    map: 'china',
+                    roam: true,
+                    zoom: 1.2,
+                    itemStyle: {
+                        areaColor: '#0a1128',
+                        borderColor: '#1e2f4d',
+                        borderWidth: 1
+                    },
+                    emphasis: {
+                        itemStyle: { areaColor: '#1e293b' },
+                        label: { show: true, color: '#94a3b8' }
+                    },
+                    regions: [] // For highlight
+                },
+                series: [
+                    {
+                        type: 'effectScatter',
+                        coordinateSystem: 'geo',
+                        data: this.geoOntologies.map(item => {
+                            const lat = parseFloat(item.latlng.split(',')[0]);
+                            const lon = parseFloat(item.latlng.split(',')[1]);
+                            return {
+                                name: item.name,
+                                value: [lon, lat, item.concepts],
+                                item: item
+                            };
+                        }),
+                        symbolSize: 12,
+                        itemStyle: { color: '#3b82f6', shadowBlur: 10, shadowColor: '#3b82f6' },
+                        tooltip: {
+                            formatter: function (p) {
+                                return `<div class="font-medium text-blue-400 mb-1">${p.data.name}</div>
+                                        <div class="text-xs text-gray-400">站点ID: ${p.data.item.id}</div>
+                                        <div class="text-xs text-gray-400">概念数: ${p.data.item.concepts}</div>
+                                        <div class="text-[10px] text-gray-500 mt-2">双击查看本体图谱</div>`;
+                            }
+                        }
+                    }
+                ]
+            };
+        },
+
+        resetGeoMap() {
+            if (!this.geoChartInstance) return;
+            this.isGraphMode = false;
+            this.selectedNode = null;
+            this.geoChartInstance.clear();
+            this.geoChartInstance.setOption(this.getGeoMapOption());
+        },
+
+        zoomToRegion(name) {
+            if (this.geoCurrentView !== 'graph' || !this.geoChartInstance || this.isGraphMode) return;
+            
+            // Highlight region
+            this.geoChartInstance.setOption({
+                geo: {
+                    regions: [{ name: name, itemStyle: { areaColor: '#1e293b', borderColor: '#3b82f6', borderWidth: 2 } }]
+                }
+            });
+
+            // Find points in this region to fit bounds
+            const points = this.geoOntologies.filter(o => o.region.includes(name));
+            if (points.length > 0) {
+                let minLon = 180, maxLon = -180, minLat = 90, maxLat = -90;
+                points.forEach(p => {
+                    const lat = parseFloat(p.latlng.split(',')[0]);
+                    const lon = parseFloat(p.latlng.split(',')[1]);
+                    if (lon < minLon) minLon = lon;
+                    if (lon > maxLon) maxLon = lon;
+                    if (lat < minLat) minLat = lat;
+                    if (lat > maxLat) maxLat = lat;
+                });
+                const center = [(minLon + maxLon) / 2, (minLat + maxLat) / 2];
+                this.geoChartInstance.setOption({
+                    geo: {
+                        center: center,
+                        zoom: points.length === 1 ? 12 : 6,
+                        animationDurationUpdate: 1000,
+                        animationEasingUpdate: 'cubicInOut'
+                    }
+                });
+            } else if (this.chinaGeoJson) {
+                const feature = this.chinaGeoJson.features.find(f => f.properties.name === name);
+                if (feature && feature.properties.center) {
+                    this.geoChartInstance.setOption({
+                        geo: {
+                            center: feature.properties.center,
+                            zoom: 5,
+                            animationDurationUpdate: 1000
+                        }
+                    });
+                }
+            }
+        },
+
+
+
+        

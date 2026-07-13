@@ -1,0 +1,1338 @@
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>洞察时空 本体智见 - 领域要素本体</title>
+    <!-- Tailwind CSS -->
+    <script src="vendor/tailwind-3.4.17.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            900: '#0f0f0f',
+                            800: '#141414',
+                            700: '#1e1e1e',
+                            600: '#2a2a2a',
+                            border: '#333333'
+                        },
+                        brand: {
+                            blue: '#3b82f6',
+                            green: '#10b981',
+                            purple: '#8b5cf6',
+                            orange: '#f59e0b'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Alpine.js -->
+    <script defer src="vendor/alpine-3.15.12.min.js"></script>
+    <!-- ECharts -->
+    <script src="vendor/echarts-5.5.0.min.js"></script>
+    <!-- Phosphor Icons -->
+    <link rel="stylesheet" href="vendor/phosphor/regular/style.css">
+    <link rel="stylesheet" href="vendor/phosphor/fill/style.css">
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-dark-900 text-gray-300 font-sans h-screen overflow-hidden flex selection:bg-brand-blue/30" x-data="ontologyApp()">
+    
+    <!-- Sidebar -->
+    <aside class="w-64 flex-shrink-0 border-r border-dark-border bg-dark-800 flex flex-col h-full transition-all duration-300 relative z-20">
+        <!-- Logo Area -->
+        <div class="h-16 flex items-center px-6 border-b border-dark-border">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center border border-gray-600 shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+                    <i class="ph-fill ph-planet text-xl text-gray-200"></i>
+                </div>
+                <span class="text-gray-100 font-medium tracking-wide text-lg">洞察时空 <span class="text-xs text-gray-400 ml-1">本体智见</span></span>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <div class="flex-1 overflow-y-auto py-4 px-3 space-y-6">
+            <!-- 概览 -->
+            <div>
+                <div class="text-xs text-gray-500 mb-2 px-3 tracking-wider">概览</div>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:text-gray-100 hover:bg-dark-700 transition-colors">
+                    <i class="ph ph-house text-lg"></i>
+                    <span class="text-sm">首页</span>
+                </a>
+            </div>
+
+            <!-- 知识工厂 -->
+            <div x-data="{ ontologyOpen: true }">
+                <div class="text-xs text-gray-500 mb-2 px-3 tracking-wider">知识工厂</div>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:text-gray-100 hover:bg-dark-700 transition-colors">
+                    <i class="ph ph-books text-lg"></i>
+                    <span class="text-sm">文献库</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:text-gray-100 hover:bg-dark-700 transition-colors">
+                    <i class="ph ph-chart-line-up text-lg"></i>
+                    <span class="text-sm">行业洞察</span>
+                </a>
+                
+                <!-- 本体中心 (一级菜单) -->
+                <div>
+                    <button @click="ontologyOpen = !ontologyOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-gray-100 hover:bg-dark-700 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <i class="ph ph-intersect text-lg"></i>
+                            <span class="text-sm font-medium">本体中心</span>
+                        </div>
+                        <i class="ph ph-caret-down text-xs transition-transform duration-200" :class="ontologyOpen ? 'rotate-180' : ''"></i>
+                    </button>
+                    <!-- 二级菜单 -->
+                    <div x-show="ontologyOpen" x-collapse class="nav-submenu">
+                        <a href="#" @click.prevent="activeMenu = 'domain'" :class="activeMenu === 'domain' ? 'active' : ''">领域要素本体</a>
+                        <a href="#" @click.prevent="activeMenu = 'geography'" :class="activeMenu === 'geography' ? 'active' : ''">地球系统本体</a>
+                    </div>
+                </div>
+
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:text-gray-100 hover:bg-dark-700 transition-colors mt-1">
+                    <i class="ph ph-briefcase text-lg"></i>
+                    <span class="text-sm">业务本体中心</span>
+                </a>
+            </div>
+
+            <!-- 服务中心 -->
+            <div>
+                <div class="text-xs text-gray-500 mb-2 px-3 tracking-wider">服务中心</div>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:text-gray-100 hover:bg-dark-700 transition-colors">
+                    <i class="ph ph-git-merge text-lg"></i>
+                    <span class="text-sm">知识抽取与融合</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:text-gray-100 hover:bg-dark-700 transition-colors">
+                    <i class="ph ph-kanban text-lg"></i>
+                    <span class="text-sm">流程编排</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Bottom Actions -->
+        <div class="p-4 border-t border-dark-border">
+            <button class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:text-gray-100 hover:bg-dark-700 transition-colors w-full">
+                <i class="ph ph-arrow-line-left text-lg"></i>
+                <span class="text-sm">收起导航</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full relative overflow-hidden bg-[#111111]">
+        <!-- Top Header -->
+        <header class="h-16 flex items-center justify-end px-6 border-b border-dark-border bg-dark-800/80 backdrop-blur-sm z-10 absolute top-0 w-full">
+            <div class="flex items-center gap-5">
+                <button class="text-gray-400 hover:text-white transition"><i class="ph ph-bug text-xl"></i></button>
+                <button class="text-gray-400 hover:text-white transition"><i class="ph ph-squares-four text-xl"></i></button>
+                <button class="text-gray-400 hover:text-white transition"><i class="ph ph-eye text-xl"></i></button>
+                <div class="h-4 w-px bg-gray-700"></div>
+                <div class="flex items-center gap-2 cursor-pointer hover:bg-dark-700 py-1 px-2 rounded transition">
+                    <span class="text-sm text-gray-300">admin</span>
+                    <span class="w-8 h-8 rounded-full border border-gray-600 bg-slate-700 text-xs text-white flex items-center justify-center" aria-label="Admin avatar">A</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Scrollable Content Area -->
+        <div class="flex-1 overflow-y-auto pt-16 pb-6 px-8 relative">
+            
+            <!-- ==============================
+                 领域要素本体 (Domain View)
+            ============================== -->
+            <div x-show="activeMenu === 'domain'" x-cloak class="flex flex-col h-full">
+                <!-- Page Title Area -->
+                <div x-show="geoPageMode === 'main' && geoCurrentView !== 'graph'" x-cloak class="mt-4 mb-6">
+                    <h1 class="text-2xl font-semibold text-white mb-1 tracking-wide">领域要素本体</h1>
+                    <p class="text-sm text-gray-500">管理所有已入库领域要素本体，支持编辑、版本追踪与跨任务复用</p>
+                </div>
+
+                <!-- Stats Cards -->
+                <div x-show="geoPageMode === 'main' && geoCurrentView !== 'graph'" x-cloak class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <!-- Card 1 -->
+                    <div class="rounded-xl p-5 stat-card-blue relative overflow-hidden group">
+                        <div class="absolute top-4 right-4 w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                            <i class="ph-fill ph-intersect text-blue-400 text-xl"></i>
+                        </div>
+                        <div class="text-sm text-gray-400 mb-2">本体总数</div>
+                        <div class="text-3xl font-mono text-white mb-3">104</div>
+                        <div class="text-xs text-gray-500 flex items-center gap-1">
+                            当前库内本体条目
+                        </div>
+                    </div>
+                    <!-- Card 2 -->
+                    <div class="rounded-xl p-5 stat-card-green relative overflow-hidden group">
+                        <div class="absolute top-4 right-4 w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                            <i class="ph-fill ph-books text-emerald-400 text-xl"></i>
+                        </div>
+                        <div class="text-sm text-gray-400 mb-2">累计概念数</div>
+                        <div class="text-3xl font-mono text-white mb-3">4,099</div>
+                        <div class="text-xs text-gray-500 flex items-center gap-1">
+                            其中 0 个待人工确认
+                        </div>
+                    </div>
+                    <!-- Card 3 -->
+                    <div class="rounded-xl p-5 stat-card-gray relative overflow-hidden group">
+                        <div class="absolute top-4 right-4 w-10 h-10 rounded-lg bg-gray-500/10 flex items-center justify-center border border-gray-500/20">
+                            <i class="ph-fill ph-share-network text-gray-400 text-xl"></i>
+                        </div>
+                        <div class="text-sm text-gray-400 mb-2">累计关系数</div>
+                        <div class="text-3xl font-mono text-white mb-3">4,953</div>
+                        <div class="text-xs text-gray-500 flex items-center gap-1">
+                            各本体 relate_nums 合计
+                        </div>
+                    </div>
+                    <!-- Card 4 -->
+                    <div class="rounded-xl p-5 stat-card-purple relative overflow-hidden group">
+                        <div class="absolute top-4 right-4 w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
+                            <i class="ph-fill ph-hard-drives text-purple-400 text-xl"></i>
+                        </div>
+                        <div class="text-sm text-gray-400 mb-2">版本状态明细</div>
+                        <div class="text-3xl font-mono text-white mb-3">111</div>
+                        <div class="text-xs text-gray-500 flex items-center gap-1">
+                            ontology_center_version 行数
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Toolbar & Content Container -->
+                <div class="glass-panel rounded-xl border border-dark-border flex flex-col flex-1 min-h-[500px]">
+                    
+                    <!-- Toolbar -->
+                    <div class="p-4 border-b border-dark-border flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-dark-700 hover:bg-dark-600 border border-dark-border text-sm text-gray-300 transition-colors">
+                                <i class="ph ph-arrows-clockwise"></i>
+                                刷新
+                            </button>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <!-- Filters -->
+                            <div class="flex items-center bg-dark-800 rounded-lg border border-dark-border p-1">
+                                <select class="bg-transparent text-sm text-gray-300 px-2 py-1 outline-none border-r border-dark-border cursor-pointer appearance-none pr-6 relative">
+                                    <option>全部领域</option>
+                                    <option>地质</option>
+                                    <option>光伏</option>
+                                </select>
+                                <select class="bg-transparent text-sm text-gray-300 px-2 py-1 outline-none cursor-pointer appearance-none pr-6">
+                                    <option>更新日期降序 (新→旧)</option>
+                                    <option>更新日期升序 (旧→新)</option>
+                                </select>
+                            </div>
+
+                            <!-- View Toggles -->
+                            <div class="flex items-center bg-dark-800 rounded-lg border border-dark-border p-1">
+                                <button @click="currentView = 'graph'" 
+                                        :class="currentView === 'graph' ? 'bg-dark-600 text-white shadow' : 'text-gray-400 hover:text-gray-200'"
+                                        class="flex items-center gap-1.5 px-3 py-1 rounded-md text-sm transition-all">
+                                    <i class="ph ph-projector-screen-chart"></i>
+                                    图谱
+                                </button>
+                                <button @click="currentView = 'list'" 
+                                        :class="currentView === 'list' ? 'bg-dark-600 text-white shadow' : 'text-gray-400 hover:text-gray-200'"
+                                        class="flex items-center gap-1.5 px-3 py-1 rounded-md text-sm transition-all">
+                                    <i class="ph ph-list-dashes"></i>
+                                    列表
+                                </button>
+                                <button @click="currentView = 'card'" 
+                                        :class="currentView === 'card' ? 'bg-dark-600 text-white shadow' : 'text-gray-400 hover:text-gray-200'"
+                                        class="flex items-center gap-1.5 px-3 py-1 rounded-md text-sm transition-all">
+                                    <i class="ph ph-squares-four"></i>
+                                    展板
+                                </button>
+                            </div>
+
+                            <!-- Search -->
+                            <div class="relative">
+                                <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                                <input type="text" placeholder="搜索本体名称" class="bg-dark-800 border border-dark-border rounded-lg pl-9 pr-4 py-1.5 text-sm text-gray-200 focus:outline-none focus:border-gray-500 w-48 transition-colors placeholder-gray-600">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Content Area -->
+                    <div class="flex-1 relative bg-dark-900/50 rounded-b-xl overflow-hidden">
+                        
+                        <!-- List View -->
+                        <div x-show="currentView === 'list'" x-cloak class="absolute inset-0 overflow-auto">
+                            <table class="w-full text-left dark-table">
+                                <thead>
+                                    <tr>
+                                        <th class="w-12"><input type="checkbox" class="custom-checkbox"></th>
+                                        <th>本体名称</th>
+                                        <th>领域</th>
+                                        <th>状态</th>
+                                        <th>概念</th>
+                                        <th>关系</th>
+                                        <th>版本</th>
+                                        <th>创建者</th>
+                                        <th>更新时间</th>
+                                        <th class="text-right">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="item in ontologies" :key="item.id">
+                                        <tr>
+                                            <td><input type="checkbox" class="custom-checkbox"></td>
+                                            <td>
+                                                <div class="font-medium text-gray-200" x-text="item.name"></div>
+                                            </td>
+                                            <td>
+                                                <span class="px-2 py-1 rounded bg-dark-700 text-xs border border-dark-border" x-text="item.domain"></span>
+                                            </td>
+                                            <td>
+                                                <div class="flex items-center text-xs">
+                                                    <span class="status-dot" :class="item.status === '已入库' ? 'status-published' : 'status-draft'"></span>
+                                                    <span :class="item.status === '已入库' ? 'text-emerald-400' : 'text-amber-400'" x-text="item.status"></span>
+                                                </div>
+                                            </td>
+                                            <td x-text="item.concepts" class="font-mono text-gray-400"></td>
+                                            <td x-text="item.relations" class="font-mono text-gray-400"></td>
+                                            <td x-text="item.version" class="font-mono text-gray-400"></td>
+                                            <td x-text="item.creator" class="text-gray-500"></td>
+                                            <td x-text="item.updatedAt" class="text-gray-500 text-xs"></td>
+                                            <td class="text-right">
+                                                <div class="flex items-center justify-end gap-3 text-xs">
+                                                    <button class="text-blue-400 hover:text-blue-300 transition">预览</button>
+                                                    <button class="text-blue-400 hover:text-blue-300 transition">版本</button>
+                                                    <button class="text-red-400 hover:text-red-300 transition">删除</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                            
+                            <!-- Pagination (List View) -->
+                            <div class="px-6 py-4 border-t border-dark-border flex items-center justify-end gap-4 text-sm text-gray-400">
+                                <span>共 104 条</span>
+                                <div class="flex items-center gap-1">
+                                    <button class="w-7 h-7 rounded flex items-center justify-center hover:bg-dark-700 border border-transparent hover:border-dark-border"><i class="ph ph-caret-left"></i></button>
+                                    <button class="w-7 h-7 rounded flex items-center justify-center bg-blue-600 text-white">1</button>
+                                    <button class="w-7 h-7 rounded flex items-center justify-center hover:bg-dark-700 border border-transparent hover:border-dark-border">2</button>
+                                    <button class="w-7 h-7 rounded flex items-center justify-center hover:bg-dark-700 border border-transparent hover:border-dark-border">3</button>
+                                    <button class="w-7 h-7 rounded flex items-center justify-center hover:bg-dark-700 border border-transparent hover:border-dark-border">4</button>
+                                    <span class="px-1">...</span>
+                                    <button class="w-7 h-7 rounded flex items-center justify-center hover:bg-dark-700 border border-transparent hover:border-dark-border">7</button>
+                                    <button class="w-7 h-7 rounded flex items-center justify-center hover:bg-dark-700 border border-transparent hover:border-dark-border"><i class="ph ph-caret-right"></i></button>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <select class="bg-dark-800 border border-dark-border rounded px-2 py-1 outline-none text-xs">
+                                        <option>15 条/页</option>
+                                    </select>
+                                    <span>跳至</span>
+                                    <input type="text" class="w-10 bg-dark-800 border border-dark-border rounded px-2 py-1 outline-none text-center text-xs">
+                                    <span>页</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card View -->
+                        <div x-show="currentView === 'card'" x-cloak class="absolute inset-0 overflow-auto p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                                <template x-for="item in ontologies" :key="item.id">
+                                    <div class="glass-card rounded-xl p-5 hover:border-gray-500 transition-colors cursor-pointer group">
+                                        <div class="flex items-start justify-between mb-3">
+                                            <h3 class="font-medium text-gray-200 group-hover:text-blue-400 transition-colors line-clamp-2 pr-2" x-text="item.name"></h3>
+                                            <div class="flex-shrink-0 flex items-center px-2 py-1 rounded bg-dark-800 border border-dark-border text-xs gap-1.5">
+                                                <span class="status-dot !mr-0" :class="item.status === '已入库' ? 'status-published' : 'status-draft'"></span>
+                                                <span :class="item.status === '已入库' ? 'text-emerald-400' : 'text-amber-400'" x-text="item.status"></span>
+                                            </div>
+                                        </div>
+                                        <div class="mb-4">
+                                            <span class="px-2 py-1 rounded bg-dark-800 text-xs border border-dark-border text-gray-400" x-text="item.domain"></span>
+                                        </div>
+                                        <div class="grid grid-cols-3 gap-2 mb-4 pb-4 border-b border-dark-border/50">
+                                            <div>
+                                                <div class="text-xs text-gray-500 mb-1">概念</div>
+                                                <div class="font-mono text-gray-300 text-lg" x-text="item.concepts"></div>
+                                            </div>
+                                            <div>
+                                                <div class="text-xs text-gray-500 mb-1">关系</div>
+                                                <div class="font-mono text-gray-300 text-lg" x-text="item.relations"></div>
+                                            </div>
+                                            <div>
+                                                <div class="text-xs text-gray-500 mb-1">版本</div>
+                                                <div class="font-mono text-gray-300 text-lg" x-text="item.version"></div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-between text-xs">
+                                            <div class="text-gray-500">
+                                                <span x-text="item.domain === '地质' ? '地质' : '光伏'"></span>
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <span class="text-amber-500 hover:text-amber-400" x-show="item.status === '草稿'">草稿</span>
+                                                <span class="text-blue-400 hover:text-blue-300" x-show="item.status !== '草稿'">预览</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                            
+                            <!-- Pagination (Card View) -->
+                            <div class="mt-6 flex items-center justify-end gap-4 text-sm text-gray-400">
+                                <span>共 104 条</span>
+                                <div class="flex items-center gap-1">
+                                    <button class="w-7 h-7 rounded flex items-center justify-center hover:bg-dark-700 border border-transparent hover:border-dark-border"><i class="ph ph-caret-left"></i></button>
+                                    <button class="w-7 h-7 rounded flex items-center justify-center bg-blue-600 text-white">1</button>
+                                    <button class="w-7 h-7 rounded flex items-center justify-center hover:bg-dark-700 border border-transparent hover:border-dark-border">2</button>
+                                    <button class="w-7 h-7 rounded flex items-center justify-center hover:bg-dark-700 border border-transparent hover:border-dark-border"><i class="ph ph-caret-right"></i></button>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <select class="bg-dark-800 border border-dark-border rounded px-2 py-1 outline-none text-xs">
+                                        <option>15 条/页</option>
+                                    </select>
+                                    <span>跳至</span>
+                                    <input type="text" class="w-10 bg-dark-800 border border-dark-border rounded px-2 py-1 outline-none text-center text-xs">
+                                    <span>页</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Graph View -->
+                        <div x-show="currentView === 'graph'" x-cloak class="absolute inset-0 flex flex-col bg-[#0a0a0a]">
+                            <!-- Graph Toolbar -->
+                            <div class="absolute top-4 left-4 z-10 flex items-center gap-2 bg-dark-800/80 backdrop-blur rounded-lg border border-dark-border p-1">
+                                <button class="px-3 py-1.5 rounded hover:bg-dark-600 text-sm text-gray-300 flex items-center gap-2 transition">
+                                    <i class="ph ph-arrows-clockwise"></i> 刷新
+                                </button>
+                                <div class="w-px h-4 bg-dark-border"></div>
+                                <button class="px-3 py-1.5 rounded hover:bg-dark-600 text-sm text-gray-300 flex items-center gap-2 transition">
+                                    <i class="ph ph-corners-out"></i> 全屏
+                                </button>
+                                <div class="w-px h-4 bg-dark-border"></div>
+                                <button class="px-3 py-1.5 rounded hover:bg-dark-600 text-sm text-gray-300 flex items-center gap-2 transition">
+                                    <i class="ph ph-cube"></i> 3D
+                                </button>
+                            </div>
+                            
+                            <!-- Graph Info overlay -->
+                            <div class="absolute top-16 left-4 z-10 text-xs text-blue-400">
+                                本体中心 - 517 节点 / 786 边
+                            </div>
+
+                            <!-- ECharts Container -->
+                            <div id="echarts-container" class="w-full h-full" x-effect="initGraph(currentView)"></div>
+                            
+                            <!-- Mini Map Overlay -->
+                            <div class="absolute bottom-4 right-4 z-10 w-48 h-32 bg-dark-800/80 backdrop-blur border border-dark-border rounded-lg p-2 flex flex-col">
+                                <div class="text-[10px] text-gray-500 mb-1">鹰眼图</div>
+                                <div class="flex-1 relative border border-dark-border/50 rounded bg-dark-900 overflow-hidden">
+                                    <!-- Mock minimap visuals -->
+                                    <div class="absolute inset-2 border border-blue-500/30 rounded bg-blue-500/5 pointer-events-none"></div>
+                                    <div class="w-full h-full opacity-30 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IiM2NjYiLz48L3N2Zz4=')]"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==============================
+                 地球系统本体 (Geography View)
+            ============================== -->
+            <div x-show="activeMenu === 'geography'" x-cloak class="flex flex-col h-full">
+                <!-- Page Title Area (Hidden in Detail View) -->
+                <div x-show="geoPageMode === 'main'" x-cloak class="mt-4 mb-6">
+                    <h1 class="text-2xl font-semibold text-white mb-1 tracking-wide">地球系统本体</h1>
+                    <p class="text-sm text-gray-500">管理所有已入库的地球系统本体，含地理地形要素本体、海洋气候要素本体</p>
+                </div>
+
+                <!-- Main Layout Split -->
+                <div x-show="geoPageMode === 'main'" x-cloak class="flex gap-4 flex-1 min-h-[500px] overflow-hidden">
+                    <!-- Left Panel: 35% Navigation Area -->
+                    <div class="w-[35%] min-w-[360px] max-w-[480px] flex flex-col gap-4 h-full">
+                        <!-- Search & Filters -->
+                        <div class="glass-panel rounded-xl border border-dark-border p-4 flex flex-col gap-3">
+                            <div class="relative">
+                                <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                                <input x-model="geoSearchQuery" type="text" placeholder="搜索站号、站名" class="w-full bg-dark-800 border border-dark-border rounded-lg pl-9 pr-4 py-2 text-sm text-gray-200 focus:outline-none focus:border-gray-500 transition-colors placeholder-gray-600">
+                            </div>
+                            <div class="flex gap-2">
+                                <select class="flex-1 bg-dark-800 border border-dark-border rounded-lg px-2 py-1.5 text-sm text-gray-200 focus:outline-none disabled:opacity-50" disabled>
+                                    <option value="CN">中国</option>
+                                </select>
+                                <select x-model="geoProvinceFilterCode" @change="handleGeoProvinceChange()" class="flex-1 bg-dark-800 border border-dark-border rounded-lg px-2 py-1.5 text-sm text-gray-200 focus:outline-none">
+                                    <option value="">全部省份</option>
+                                    <template x-for="province in geoProvinceOptions" :key="province.code">
+                                        <option :value="province.code" x-text="province.name"></option>
+                                    </template>
+                                </select>
+                                <select x-model="geoCityFilterCode" @change="handleGeoCityChange()" :disabled="!geoProvinceFilterCode" class="flex-1 bg-dark-800 border border-dark-border rounded-lg px-2 py-1.5 text-sm text-gray-200 focus:outline-none disabled:opacity-50">
+                                    <option value="">全部城市</option>
+                                    <template x-for="city in geoCityOptions" :key="city.code">
+                                        <option :value="city.code" x-text="city.name"></option>
+                                    </template>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Ontology List -->
+                        <div class="glass-panel rounded-xl border border-dark-border flex-1 flex flex-col overflow-hidden">
+                            <div class="px-4 py-3 border-b border-dark-border flex items-center justify-between bg-dark-800/50">
+                                <span class="text-sm font-medium text-gray-200">本体列表</span>
+                                <span class="text-xs text-gray-500">共 <span x-text="filteredGeoOntologies.length"></span> 个</span>
+                            </div>
+                            <div class="flex-1 overflow-y-auto p-2 space-y-2">
+                                <template x-for="item in filteredGeoOntologies" :key="item.id">
+                                    <div class="p-3 rounded-lg border border-dark-border hover:border-gray-500 bg-dark-800/50 hover:bg-dark-700/50 transition-colors cursor-pointer" @click="openGeoDetail(item, 'profile')">
+                                        <div class="flex items-center justify-between mb-3 border-b border-dark-border/50 pb-2">
+                                            <div class="font-medium text-gray-200 text-sm">
+                                                <span x-text="item.name"></span>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-y-1 gap-x-2 text-xs text-gray-500">
+                                            <div>站号: <span class="text-gray-300 font-mono" x-text="item.id"></span></div>
+                                            <div class="text-right">区域: <span class="text-gray-300" x-text="item.region"></span></div>
+                                            <div>经纬度: <span class="text-gray-300 font-mono" x-text="item.latlng"></span></div>
+                                            <div class="text-right">状态: <span class="text-emerald-400" x-text="item.status"></span></div>
+                                            <div class="col-span-2 mt-1 pt-1 border-t border-dark-border/50 text-right">
+                                                更新: <span x-text="item.updatedAt"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                                <div x-show="filteredGeoOntologies.length === 0" class="py-8 text-center text-sm text-gray-500">
+                                    暂无匹配数据
+                                </div>
+                            </div>
+                            <div class="px-3 py-2 border-t border-dark-border flex items-center justify-between text-xs text-gray-400 bg-dark-800/50">
+                                <div class="flex items-center gap-1">
+                                    <button class="w-6 h-6 rounded flex items-center justify-center hover:bg-dark-700"><i class="ph ph-caret-left"></i></button>
+                                    <button class="w-6 h-6 rounded flex items-center justify-center bg-blue-600 text-white">1</button>
+                                    <button class="w-6 h-6 rounded flex items-center justify-center hover:bg-dark-700">2</button>
+                                    <button class="w-6 h-6 rounded flex items-center justify-center hover:bg-dark-700">3</button>
+                                    <button class="w-6 h-6 rounded flex items-center justify-center hover:bg-dark-700"><i class="ph ph-caret-right"></i></button>
+                                </div>
+                                <select class="bg-dark-900 border border-dark-border rounded px-1 py-0.5 outline-none">
+                                    <option>10 条/页</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Panel: 70% Display Area -->
+                    <div class="flex-1 flex flex-col gap-4 h-full min-w-0">
+                        <!-- Stats Cards -->
+                        <div class="grid grid-cols-4 gap-4 shrink-0">
+                            <div class="rounded-xl p-4 stat-card-purple relative overflow-hidden group">
+                                <div class="absolute top-3 right-3 w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
+                                    <i class="ph-fill ph-camera text-purple-400 text-lg"></i>
+                                </div>
+                                <div class="text-xs text-gray-400 mb-1">站点总数</div>
+                                <div class="text-2xl font-mono text-white" x-text="geoStats.stationCount || 2000"></div>
+                            </div>
+                            <div class="rounded-xl p-4 stat-card-gray relative overflow-hidden group">
+                                <div class="absolute top-3 right-3 w-8 h-8 rounded-lg bg-gray-500/10 flex items-center justify-center border border-gray-500/20">
+                                    <i class="ph-fill ph-map-trifold text-gray-400 text-lg"></i>
+                                </div>
+                                <div class="text-xs text-gray-400 mb-1">覆盖省域</div>
+                                <div class="text-2xl font-mono text-white" x-text="geoStats.provinceCount || 31"></div>
+                            </div>
+                            <div class="rounded-xl p-4 stat-card-blue relative overflow-hidden group">
+                                <div class="absolute top-3 right-3 w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                                    <i class="ph-fill ph-map-pin text-blue-400 text-lg"></i>
+                                </div>
+                                <div class="text-xs text-gray-400 mb-1">本体总数</div>
+                                <div class="text-2xl font-mono text-white" x-text="geoStats.ontologyCount || 15"></div>
+                            </div>
+                            <div class="rounded-xl p-4 stat-card-green relative overflow-hidden group">
+                                <div class="absolute top-3 right-3 w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                                    <i class="ph-fill ph-books text-emerald-400 text-lg"></i>
+                                </div>
+                                <div class="text-xs text-gray-400 mb-1">概念总数</div>
+                                <div class="text-2xl font-mono text-white" x-text="geoStats.conceptCount || 2970"></div>
+                            </div>
+                        </div>
+
+                        <!-- Map -->
+                        <div x-ref="geoPanel" class="geo-panel flex-1 glass-panel rounded-xl border border-dark-border relative overflow-hidden flex flex-col">
+                            <div class="absolute inset-0 bg-[#040b17] geo-map-stage">
+                                <div class="geo-graph-workspace w-full h-full">
+                                    <section class="geo-map-shell w-full h-full relative">
+                                        <!-- Current administrative path -->
+                                        <nav class="geo-location-path absolute top-4 left-4 z-10" aria-label="当前行政区">
+                                            <template x-for="(item, index) in geoBreadcrumbs" :key="item.code">
+                                                <div class="flex items-center">
+                                                    <i x-show="index > 0" class="ph ph-caret-right geo-location-divider"></i>
+                                                    <button @click="navigateToBreadcrumb(index)" :class="index === geoBreadcrumbs.length - 1 ? 'is-current' : ''" class="geo-location-tag" x-text="item.label"></button>
+                                                </div>
+                                            </template>
+                                        </nav>
+                                        
+                                        <div x-show="geoMapError" x-cloak class="geo-map-error">
+                                            <i class="ph ph-warning-circle"></i>
+                                            <span x-text="geoMapError"></span>
+                                        </div>
+
+                                        <div id="geo-map-container" class="w-full h-full geo-map-canvas" x-effect="initGeoMap('graph')"></div>
+                                        
+                                        <div x-show="currentGeoRegion.level > 0" x-cloak class="geo-map-guide">
+                                            <i class="ph ph-cursor-click mr-1"></i> 提示：省/市层级下单机站点可进入详情页；
+                                        </div>
+                                    </section>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <div x-show="geoPageMode === 'detail'" x-cloak class="geo-detail-shell flex-1 mt-4">
+                    <div class="geo-detail-frame">
+                        <div class="flex items-center justify-between px-6 py-4 border-b border-dark-border">
+                            <div class="flex items-center gap-4">
+                                <button @click="closeGeoDetail()" class="w-8 h-8 flex items-center justify-center rounded bg-indigo-500/20 text-indigo-400 hover:text-white hover:bg-indigo-500/40 transition">
+                                    <span class="text-[10px] uppercase font-bold tracking-wider">返回</span>
+                                </button>
+                                <div>
+                                    <h2 class="text-[22px] font-semibold text-white leading-none">洞察自动化测试-1540</h2>
+                                    <div class="mt-2 text-xs text-slate-400">
+                                        创建者：admin - 更新时间：2026-07-08 16:00:45
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-4">
+                                <div class="flex items-center bg-dark-800 border border-dark-border rounded-lg overflow-hidden h-12 w-32">
+                                    <div class="w-12 h-full bg-emerald-500/10 border-r border-dark-border flex items-center justify-center text-emerald-400">
+                                        <i class="ph ph-books text-lg"></i>
+                                    </div>
+                                    <div class="px-3 flex flex-col justify-center">
+                                        <div class="text-[10px] text-slate-500 mb-0.5">概念节点</div>
+                                        <div class="text-sm font-medium text-white leading-none">13</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center bg-dark-800 border border-dark-border rounded-lg overflow-hidden h-12 w-32">
+                                    <div class="w-12 h-full bg-indigo-500/10 border-r border-dark-border flex items-center justify-center text-indigo-400">
+                                        <i class="ph ph-stack text-lg"></i>
+                                    </div>
+                                    <div class="px-3 flex flex-col justify-center">
+                                        <div class="text-[10px] text-slate-500 mb-0.5">版本数量</div>
+                                        <div class="text-sm font-medium text-white leading-none">1</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center bg-dark-800 border border-dark-border rounded-lg overflow-hidden h-12 w-32">
+                                    <div class="w-12 h-full bg-violet-500/10 border-r border-dark-border flex items-center justify-center text-violet-400">
+                                        <i class="ph ph-share-network text-lg"></i>
+                                    </div>
+                                    <div class="px-3 flex flex-col justify-center">
+                                        <div class="text-[10px] text-slate-500 mb-0.5">关系边</div>
+                                        <div class="text-sm font-medium text-white leading-none">12</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between px-6 py-0 border-b border-dark-border bg-dark-800/30">
+                            <div class="flex items-center gap-6">
+                                <button @click="switchGeoDetailTab('profile')" :class="geoDetailTab === 'profile' ? 'text-indigo-400 border-indigo-400' : 'text-slate-400 border-transparent hover:text-slate-200'" class="flex items-center gap-2 py-3 border-b-2 transition text-sm">
+                                    <i class="ph ph-identification-card"></i>
+                                    站点画像
+                                </button>
+                                <button @click="switchGeoDetailTab('preview')" :class="geoDetailTab === 'preview' ? 'text-indigo-400 border-indigo-400' : 'text-slate-400 border-transparent hover:text-slate-200'" class="flex items-center gap-2 py-3 border-b-2 transition text-sm">
+                                    <i class="ph ph-projector-screen-chart"></i>
+                                    本体图谱
+                                </button>
+                                <button @click="switchGeoDetailTab('version')" :class="geoDetailTab === 'version' ? 'text-indigo-400 border-indigo-400' : 'text-slate-400 border-transparent hover:text-slate-200'" class="flex items-center gap-2 py-3 border-b-2 transition text-sm">
+                                    <i class="ph ph-clock-counter-clockwise"></i>
+                                    版本管理
+                                </button>
+                            </div>
+                            <div class="flex items-center">
+                                <button class="flex items-center gap-2 px-3 py-1.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 hover:bg-indigo-500/20 transition text-sm">
+                                    <i class="ph ph-floppy-disk-back"></i>
+                                    保存版本
+                                </button>
+                            </div>
+                        </div>
+
+                        <div x-show="false" x-cloak class="flex-1 overflow-y-auto bg-dark-900 flex flex-col" aria-hidden="true">
+                            <!-- Top Section (Dark) -->
+                            <div class="p-6 shrink-0">
+                                <div class="flex gap-4 h-[220px]">
+                                    <!-- Left: Cards & Summary -->
+                                    <div class="w-1/2 flex flex-col gap-4">
+                                        <div class="flex gap-4 h-24">
+                                            <div class="flex-1 bg-dark-800 rounded-lg border border-dark-border p-4 flex flex-col justify-center">
+                                                <div class="text-xs text-slate-400 mb-2 text-center">地形类型</div>
+                                                <div class="flex items-center justify-center gap-2">
+                                                    <div class="w-6 h-6 bg-dark-700 rounded flex items-center justify-center text-slate-400 text-xs"><i class="ph ph-mountains"></i></div>
+                                                    <div class="text-lg text-white font-medium">山地</div>
+                                                </div>
+                                            </div>
+                                            <div class="flex-1 bg-dark-800 rounded-lg border border-dark-border p-4 flex flex-col justify-center">
+                                                <div class="text-xs text-slate-400 mb-2 text-center">地表类型</div>
+                                                <div class="flex items-center justify-center gap-2">
+                                                    <div class="w-6 h-6 bg-dark-700 rounded flex items-center justify-center text-slate-400 text-xs"><i class="ph ph-tree"></i></div>
+                                                    <div class="text-lg text-white font-medium">林地/森林</div>
+                                                </div>
+                                            </div>
+                                            <div class="flex-1 bg-dark-800 rounded-lg border border-dark-border p-4 flex flex-col justify-center">
+                                                <div class="text-xs text-slate-400 mb-2 text-center">城市化等级</div>
+                                                <div class="flex items-center justify-center gap-2">
+                                                    <div class="w-6 h-6 bg-dark-700 rounded flex items-center justify-center text-slate-400 text-xs"><i class="ph ph-buildings"></i></div>
+                                                    <div class="text-lg text-white font-medium">城郊</div>
+                                                </div>
+                                            </div>
+                                            <div class="flex-1 bg-dark-800 rounded-lg border border-dark-border p-4 flex flex-col justify-center">
+                                                <div class="text-xs text-slate-400 mb-2 text-center">综合标签</div>
+                                                <div class="text-[13px] text-white font-medium text-center leading-tight">山地 · 林地<br>/森林 · 城郊</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex-1 bg-dark-800 rounded-lg border border-dark-border p-4">
+                                            <h3 class="text-sm font-semibold text-white mb-2">AI智能总结</h3>
+                                            <p class="text-[13px] text-slate-400 leading-relaxed">
+                                                佛冈站位于广东省清远市，属于山地林地区域，整体地形起伏较大，周边以森林覆盖为主，5km 范围内河网较发育，距离㵋江约 0.31km，邻近飞来峡水库，城市化程度较低，属于典型山地森林城郊观测站。
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <!-- Right: Map -->
+                                    <div class="w-1/2 bg-dark-800 rounded-lg border border-dark-border overflow-hidden relative">
+                                        <div class="absolute top-3 left-3 flex gap-2 z-10">
+                                            <div class="px-2 py-1 bg-black/60 backdrop-blur rounded text-[11px] text-white">广东省/清远市</div>
+                                            <div class="px-2 py-1 bg-black/60 backdrop-blur rounded text-[11px] text-white">23.883°N, 113.517°E</div>
+                                            <div class="px-2 py-1 bg-black/60 backdrop-blur rounded text-[11px] text-white">站址海拔: 68m</div>
+                                        </div>
+                                        <div id="legacy-geo-profile-map" class="w-full h-full bg-dark-900"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bottom Section (Dark) -->
+                            <div class="p-6 bg-dark-950 flex-1">
+                                <!-- Middle Section: 5 Columns -->
+                                <div class="grid grid-cols-5 gap-4 mb-4">
+                                    <!-- Col 1: 地形地貌 -->
+                                    <div class="bg-dark-800 rounded-lg p-4 col-span-1 border border-dark-border">
+                                        <div class="flex items-center gap-2 mb-4">
+                                            <i class="ph-fill ph-mountains text-emerald-500 text-lg"></i>
+                                            <h3 class="text-sm font-bold text-white">地形地貌</h3>
+                                        </div>
+                                        <div class="mb-3 h-12 rounded-lg bg-dark-900/70 border border-dark-border overflow-hidden" id="legacy-chart-terrain-ridges"></div>
+                                        <div class="space-y-4">
+                                            <div class="flex justify-between items-end">
+                                                <div>
+                                                    <div class="text-[10px] text-slate-400 mb-1">地形复杂度 RIX (5km)</div>
+                                                    <div class="text-lg font-bold text-white">0.152</div>
+                                                </div>
+                                                <div class="w-16 h-8" id="legacy-chart-rix"></div>
+                                            </div>
+                                            <div class="flex justify-between items-end">
+                                                <div>
+                                                    <div class="text-[10px] text-slate-400 mb-1">地形起伏度 dh (5km)</div>
+                                                    <div class="text-lg font-bold text-white">44.15 <span class="text-xs font-normal text-slate-500">m</span></div>
+                                                </div>
+                                                <div class="w-16 h-8" id="legacy-chart-dh"></div>
+                                            </div>
+                                            <div class="flex gap-2">
+                                                <div class="flex-1">
+                                                    <div class="text-[10px] text-slate-400 mb-1">平均坡度 (5km)</div>
+                                                    <div class="text-lg font-bold text-white">10.81°</div>
+                                                    <div class="w-full h-8 mt-1" id="legacy-chart-slope"></div>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <div class="text-[10px] text-slate-400 mb-1">高程范围 (5km)</div>
+                                                    <div class="text-lg font-bold text-white">491 <span class="text-xs font-normal text-slate-500">m</span></div>
+                                                    <div class="w-full h-8 mt-1" id="legacy-chart-ele"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Col 2: 地表覆盖 -->
+                                    <div class="bg-dark-800 rounded-lg p-4 col-span-1 border border-dark-border">
+                                        <div class="flex items-center gap-2 mb-4">
+                                            <i class="ph-fill ph-triangle text-emerald-400 text-lg"></i>
+                                            <h3 class="text-sm font-bold text-white">地表覆盖 <span class="text-[10px] text-slate-500 font-normal">(5km)</span></h3>
+                                        </div>
+                                        <div class="text-[10px] text-slate-400 mb-1">主导类型</div>
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                            <div class="text-sm font-bold text-white">林地/森林 (44.7%)</div>
+                                        </div>
+                                        <div class="h-32 w-full" id="legacy-chart-landcover"></div>
+                                        <div class="flex items-center justify-between mt-2 pt-2 border-t border-dark-border">
+                                            <div class="text-[11px] text-slate-400">景观多样性</div>
+                                            <div class="text-[11px] font-medium text-white">中等 <span class="text-slate-500">(香农指数 0.978)</span></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Col 3: 水文环境 -->
+                                    <div class="bg-dark-800 rounded-lg p-4 col-span-1 border border-dark-border">
+                                        <div class="flex items-center gap-2 mb-4">
+                                            <i class="ph-fill ph-drop text-blue-400 text-lg"></i>
+                                            <h3 class="text-sm font-bold text-white">水文环境 <span class="text-[10px] text-slate-500 font-normal">(10km)</span></h3>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-y-4 gap-x-2">
+                                            <div>
+                                                <div class="text-[10px] text-slate-400 mb-1">河流数量</div>
+                                                <div class="text-lg font-bold text-white">11 <span class="text-xs font-normal text-slate-500">条</span></div>
+                                            </div>
+                                            <div>
+                                                <div class="text-[10px] text-slate-400 mb-1">最近河流距离</div>
+                                                <div class="text-lg font-bold text-white">0.31 <span class="text-xs font-normal text-slate-500">km</span></div>
+                                            </div>
+                                            <div>
+                                                <div class="text-[10px] text-slate-400 mb-1">湖泊/水库数量</div>
+                                                <div class="text-lg font-bold text-white">2 <span class="text-xs font-normal text-slate-500">个</span></div>
+                                            </div>
+                                            <div>
+                                                <div class="text-[10px] text-slate-400 mb-1">最近水体距离</div>
+                                                <div class="text-lg font-bold text-white">3.84 <span class="text-xs font-normal text-slate-500">km</span></div>
+                                            </div>
+                                            <div>
+                                                <div class="text-[10px] text-slate-400 mb-1">河网密度</div>
+                                                <div class="text-lg font-bold text-white">0.262 <span class="text-[10px] font-normal text-slate-500">km/km²</span></div>
+                                            </div>
+                                            <div>
+                                                <div class="text-[10px] text-slate-400 mb-1">湿地比例</div>
+                                                <div class="text-lg font-bold text-white">0.03 <span class="text-xs font-normal text-slate-500">%</span></div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-4 h-14 rounded-lg bg-dark-900/70 border border-dark-border overflow-hidden" id="legacy-chart-hydro-bars"></div>
+                                    </div>
+
+                                    <!-- Col 4: 城市化特征 -->
+                                    <div class="bg-dark-800 rounded-lg p-4 col-span-1 border border-dark-border">
+                                        <div class="flex items-center gap-2 mb-4">
+                                            <i class="ph-fill ph-buildings text-red-400 text-lg"></i>
+                                            <h3 class="text-sm font-bold text-white">城市化特征 <span class="text-[10px] text-slate-500 font-normal">(2km)</span></h3>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-y-4 gap-x-2 mb-4">
+                                            <div>
+                                                <div class="text-[10px] text-slate-400 mb-1">不透水面比例</div>
+                                                <div class="text-lg font-bold text-white">29.6%</div>
+                                            </div>
+                                            <div>
+                                                <div class="text-[10px] text-slate-400 mb-1">建成区比例</div>
+                                                <div class="text-lg font-bold text-white">28.3%</div>
+                                            </div>
+                                            <div>
+                                                <div class="text-[10px] text-slate-400 mb-1">UI指数</div>
+                                                <div class="text-lg font-bold text-white">0.40 <span class="text-xs font-normal text-emerald-500">中等</span></div>
+                                            </div>
+                                            <div>
+                                                <div class="text-[10px] text-slate-400 mb-1">热岛强度</div>
+                                                <div class="text-lg font-bold text-white">1.09 <span class="text-xs font-normal text-slate-500">°C</span></div>
+                                                <div class="text-[10px] text-emerald-500">弱热岛</div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="flex justify-between items-end mb-1">
+                                                <div class="text-[10px] text-slate-400">夜间灯光强度</div>
+                                                <div class="text-sm font-bold text-white">8.26 <span class="text-[10px] font-normal text-slate-500">(nW/cm²/sr)</span></div>
+                                            </div>
+                                            <div class="w-full bg-dark-700 rounded-full h-1.5 border border-dark-border">
+                                                <div class="bg-blue-500 h-1.5 rounded-full" style="width: 30%"></div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-4 h-14 rounded-lg bg-dark-900/70 border border-dark-border overflow-hidden" id="legacy-chart-urban-bars"></div>
+                                    </div>
+
+                                    <!-- Col 5: 其他环境 -->
+                                    <div class="bg-dark-800 rounded-lg p-4 col-span-1 border border-dark-border">
+                                        <div class="flex items-center gap-2 mb-4">
+                                            <i class="ph-fill ph-anchor text-indigo-400 text-lg"></i>
+                                            <h3 class="text-sm font-bold text-white">其他环境</h3>
+                                        </div>
+                                        <div class="space-y-4">
+                                            <div class="flex items-center justify-between">
+                                                <div>
+                                                    <div class="text-[10px] text-slate-400 mb-1">海岸距离</div>
+                                                    <div class="text-lg font-bold text-white">151.85 <span class="text-xs font-normal text-slate-500">km</span></div>
+                                                </div>
+                                                <button class="text-[10px] text-slate-400 border border-dark-border bg-dark-700 rounded px-2 py-1 hover:bg-dark-600 hover:text-white transition">详情 ></button>
+                                            </div>
+                                            <div class="flex items-center justify-between">
+                                                <div>
+                                                    <div class="text-[10px] text-slate-400 mb-1">海拔高度</div>
+                                                    <div class="text-lg font-bold text-white">68.0 <span class="text-xs font-normal text-slate-500">m</span></div>
+                                                </div>
+                                                <button class="text-[10px] text-slate-400 border border-dark-border bg-dark-700 rounded px-2 py-1 hover:bg-dark-600 hover:text-white transition">详情 ></button>
+                                            </div>
+                                            <div class="flex items-center justify-between">
+                                                <div>
+                                                    <div class="text-[10px] text-slate-400 mb-1">积雪/冰面积占比</div>
+                                                    <div class="text-lg font-bold text-white">0.00%</div>
+                                                </div>
+                                                <button class="text-[10px] text-slate-400 border border-dark-border bg-dark-700 rounded px-2 py-1 hover:bg-dark-600 hover:text-white transition">详情 ></button>
+                                            </div>
+                                        </div>
+                                        <div class="mt-4 h-14 rounded-lg bg-dark-900/70 border border-dark-border overflow-hidden" id="legacy-chart-other-bars"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Bottom Section -->
+                                <div class="flex gap-4">
+                                    <!-- 多尺度地形特征 -->
+                                    <div class="bg-dark-800 rounded-lg p-4 flex-1 border border-dark-border">
+                                        <div class="flex items-center justify-between mb-6">
+                                            <h3 class="text-sm font-bold text-white">多尺度地形特征</h3>
+                                            <div class="flex bg-dark-900 p-0.5 rounded-md border border-dark-border">
+                                                <button class="px-4 py-1 text-xs text-slate-400 rounded hover:text-white transition">500m</button>
+                                                <button class="px-4 py-1 text-xs text-slate-400 rounded hover:text-white transition">1km</button>
+                                                <button class="px-4 py-1 text-xs bg-indigo-500 text-white rounded shadow-sm">5km</button>
+                                                <button class="px-4 py-1 text-xs text-slate-400 rounded hover:text-white transition">10km</button>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-5 gap-6">
+                                            <div>
+                                                <div class="text-[11px] text-slate-400 mb-2">平均高程 (m)</div>
+                                                <div class="text-xl font-bold text-white mb-2">109.91</div>
+                                                <div class="w-full h-10" id="legacy-chart-multi-1"></div>
+                                            </div>
+                                            <div>
+                                                <div class="text-[11px] text-slate-400 mb-2">高程标准差 (m)</div>
+                                                <div class="text-xl font-bold text-white mb-2">56.70</div>
+                                                <div class="w-full h-10" id="legacy-chart-multi-2"></div>
+                                            </div>
+                                            <div>
+                                                <div class="text-[11px] text-slate-400 mb-2">平均坡度 (°)</div>
+                                                <div class="text-xl font-bold text-white mb-2">10.81</div>
+                                                <div class="w-full h-10" id="legacy-chart-multi-3"></div>
+                                            </div>
+                                            <div>
+                                                <div class="text-[11px] text-slate-400 mb-2">地形起伏度 RIX</div>
+                                                <div class="text-xl font-bold text-white mb-2">0.219</div>
+                                                <div class="w-full h-10" id="legacy-chart-multi-4"></div>
+                                            </div>
+                                            <div>
+                                                <div class="text-[11px] text-slate-400 mb-2">地形位置指数 TPI (m)</div>
+                                                <div class="text-xl font-bold text-white mb-2">-41.90</div>
+                                                <div class="w-full h-10" id="legacy-chart-multi-5"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- 坡向分布 -->
+                                    <div class="bg-dark-800 rounded-lg p-4 w-[300px] border border-dark-border shrink-0">
+                                        <h3 class="text-sm font-bold text-white mb-2">坡向分布 <span class="text-[10px] text-slate-500 font-normal">(5km)</span></h3>
+                                        <div class="w-full h-40" id="legacy-chart-aspect"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div x-show="geoDetailTab === 'profile'" x-cloak class="geo-profile-rebuild" x-data="{ activeProfileMetric: 'terrain', profileScale: '5km' }">
+                            <section class="geo-profile-section">
+                                <div class="geo-profile-section__title">
+                                    <span>站点概览</span><i class="ph-fill ph-caret-down"></i>
+                                </div>
+                                <div class="geo-profile-overview">
+                                    <div class="geo-profile-overview__left">
+                                        <article class="geo-profile-card geo-profile-identity">
+                                            <h3>站点身份信息</h3>
+                                            <dl>
+                                                <div><dt>站名：</dt><dd x-text="currentGeoRecord?.name || '佛冈'"></dd></div>
+                                                <div><dt>所属区域：</dt><dd>中国/广东省/清远市</dd></div>
+                                                <div><dt>站址海拔（米）：</dt><dd>68.0</dd></div>
+                                                <div><dt>站号：</dt><dd x-text="currentGeoRecord?.id || '590870'"></dd></div>
+                                                <div><dt>经纬度：</dt><dd>23.883°N, 113.517°E</dd></div>
+                                                <div><dt>数据质量：</dt><dd>完整</dd></div>
+                                            </dl>
+                                        </article>
+                                        <div class="geo-profile-tag-grid">
+                                            <article class="geo-profile-tag-card"><span>地形类型</span><strong><i class="ph-fill ph-mountains"></i> 山地</strong></article>
+                                            <article class="geo-profile-tag-card"><span>地表类型</span><strong><i class="ph-fill ph-tree"></i> 林地/森林</strong></article>
+                                            <article class="geo-profile-tag-card"><span>城市化等级</span><strong><i class="ph-fill ph-buildings"></i> 城郊</strong></article>
+                                            <article class="geo-profile-tag-card"><span>综合标签</span><strong class="geo-profile-tag-card__composite">山地 · 林地<br>/森林 · 城郊</strong></article>
+                                        </div>
+                                        <article class="geo-profile-card geo-profile-summary">
+                                            <h3>智能总结</h3>
+                                            <p>佛冈站位于广东省清远市，属于山地林地区域，整体地形起伏较大，周边以森林覆盖为主，5km 范围内河网较发育，距离湞江约 0.31km，邻近飞来峡水库，城市化程度较低，属于典型山地森林城郊观测站。</p>
+                                        </article>
+                                    </div>
+                                    <div class="geo-profile-satellite" aria-label="站点十公里范围卫星图">
+                                        <span>卫星图</span>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section class="geo-profile-section">
+                                <div class="geo-profile-section__title">
+                                    <span>环境类型详细指标</span><i class="ph-fill ph-caret-down"></i>
+                                </div>
+                                <div class="geo-profile-environment-grid">
+                                    <article class="geo-profile-environment-card">
+                                        <h3><i class="ph-fill ph-mountains text-emerald-400"></i> 地形结构</h3>
+                                        <div class="geo-profile-metric-grid">
+                                            <div><span>站址海拔</span><strong>68.0 <em>m</em></strong></div>
+                                            <div><span>站址坡度</span><strong>12.65°</strong></div>
+                                            <div><span>RIX指数(5km)</span><strong>0.152091</strong></div>
+                                            <div><span>坡向</span><strong>北</strong></div>
+                                        </div>
+                                        <div class="geo-profile-source">数据源：《SRTMGL1_30m》-2024</div>
+                                        <div class="geo-profile-placeholder">代表本环境类型的通用UI贴图</div>
+                                    </article>
+
+                                    <article class="geo-profile-environment-card">
+                                        <h3><i class="ph-fill ph-triangle text-emerald-300"></i> 地表覆盖</h3>
+                                        <div class="geo-profile-metric-grid">
+                                            <div><span>单点地类</span><strong>林地/森林</strong></div>
+                                            <div><span>2km主导地类</span><strong>城市/建成区</strong></div>
+                                        </div>
+                                        <div class="geo-profile-landcover-chart"><div id="chart-landcover"></div></div>
+                                        <div class="geo-profile-card-row"><span>异质性等级(2km)</span><strong>中等</strong></div>
+                                        <div class="geo-profile-note">
+                                            <div class="geo-profile-note__copy">风切变指数：0.301<br>2km加权粗糙度：0.66303</div>
+                                            <b>非机场站点</b>
+                                        </div>
+                                        <div class="geo-profile-source">数据源：《ESRI_LULC_10m》-2024</div>
+                                    </article>
+
+                                    <article class="geo-profile-environment-card">
+                                        <h3><i class="ph-fill ph-drop text-blue-400"></i> 水文环境</h3>
+                                        <div class="geo-profile-pill-row"><b>湖库与湿地混合</b><b>5km主导水体：其他</b><b>非湖库临近</b></div>
+                                        <div class="geo-profile-metric-grid">
+                                            <div><span>最近湖库类型</span><strong>水库</strong></div>
+                                            <div><span>站点至湖库距离</span><strong>3.10 <em>km</em></strong></div>
+                                            <div><span>最近河流</span><strong>湞江</strong></div>
+                                            <div><span>站点至河流距离</span><strong>0.31 <em>km</em></strong></div>
+                                        </div>
+                                        <div class="geo-profile-source">数据源：《XXXXXX》-2024 <small>等4个数据集</small></div>
+                                        <div class="geo-profile-placeholder">代表本环境类型的通用UI贴图</div>
+                                    </article>
+
+                                    <article class="geo-profile-environment-card">
+                                        <h3><i class="ph-fill ph-buildings text-rose-400"></i> 城市化特征</h3>
+                                        <div class="geo-profile-metric-grid">
+                                            <div><span>不透水面比例（2km）</span><strong>30.58%</strong></div>
+                                            <div><span>建成区比例（2km）</span><strong>10.05% <em class="text-teal-400">中建成区</em></strong></div>
+                                            <div><span>综合城市化指数</span><strong>10.7%</strong></div>
+                                            <div><span>中间城市化指数</span><strong>30.58%</strong></div>
+                                        </div>
+                                        <div class="geo-profile-card-row"></div>
+                                        <div class="geo-profile-metric-grid geo-profile-urban-bottom">
+                                            <div><span>地表城市热岛</span><strong>287.85 <em class="text-cyan-400">day_k</em></strong></div>
+                                            <div><span>年均热岛强度</span><strong>11.98</strong></div>
+                                            <div><strong>287.85 <em class="text-cyan-400">night_k</em></strong></div>
+                                            <div><strong>高度城市热岛</strong></div>
+                                        </div>
+                                        <div class="geo-profile-source">数据源：《XXXXXX》-2024 <small>等3个数据集</small></div>
+                                    </article>
+
+                                    <article class="geo-profile-environment-card">
+                                        <h3><i class="ph-fill ph-anchor text-indigo-400"></i> 其他环境</h3>
+                                        <div class="geo-profile-metric-grid">
+                                            <div><span>海岸线距离</span><strong>87.10 <em>km</em></strong></div>
+                                            <div><span>海岸方位走向</span><strong>西北-东南</strong></div>
+                                        </div>
+                                        <div class="geo-profile-pill-row"><b>中等海岸暴露</b><b>内陆站点</b><b>非海库临近</b></div>
+                                        <div class="geo-profile-source">数据源：《XXXXXX》-2024</div>
+                                        <div class="geo-profile-card-row"><span>积雪/冰面积占比</span></div>
+                                        <strong class="geo-profile-na">不适用</strong>
+                                        <div class="geo-profile-source">数据源：《XXXXXX》-2024</div>
+                                        <div class="geo-profile-placeholder geo-profile-placeholder--short">代表本环境类型的通用UI贴图</div>
+                                    </article>
+                                </div>
+                            </section>
+
+                            <section class="geo-profile-section geo-profile-scale-section">
+                                <div class="geo-profile-section__title"><span>多尺度地理环境特征</span><i class="ph-fill ph-caret-down"></i></div>
+                                <div class="geo-profile-scale-panel">
+                                    <div class="geo-profile-scale-toolbar">
+                                        <div class="geo-profile-scale-tabs">
+                                            <button @click="activeProfileMetric = 'terrain'; profileScale = '5km'" :class="activeProfileMetric === 'terrain' ? 'is-active' : ''">地形结构</button>
+                                            <button @click="activeProfileMetric = 'landcover'; profileScale = '2km'" :class="activeProfileMetric === 'landcover' ? 'is-active' : ''">地表覆盖</button>
+                                            <button @click="activeProfileMetric = 'water'; profileScale = '5km'" :class="activeProfileMetric === 'water' ? 'is-active' : ''">水体环境</button>
+                                        </div>
+                                        <div class="geo-profile-scale-picker">
+                                            <button @click="profileScale = '500m'" :class="profileScale === '500m' ? 'is-active' : ''">500m</button>
+                                            <button x-show="activeProfileMetric === 'terrain'" @click="profileScale = '1km'" :class="profileScale === '1km' ? 'is-active' : ''">1km</button>
+                                            <button x-show="activeProfileMetric !== 'terrain'" @click="profileScale = '2km'" :class="profileScale === '2km' ? 'is-active' : ''">2km</button>
+                                            <button @click="profileScale = '5km'" :class="profileScale === '5km' ? 'is-active' : ''">5km</button>
+                                            <button x-show="activeProfileMetric !== 'landcover'" @click="profileScale = '10km'" :class="profileScale === '10km' ? 'is-active' : ''">10km</button>
+                                        </div>
+                                    </div>
+                                    <div class="geo-profile-scale-metrics" x-show="activeProfileMetric === 'terrain'">
+                                        <div><span>平均高程（m）</span><strong>109.91</strong><div id="chart-multi-1"></div></div>
+                                        <div><span>高程标准差（m）</span><strong>56.70</strong><div id="chart-multi-2"></div></div>
+                                        <div><span>平均坡度（°）</span><strong>10.81</strong><div id="chart-multi-3"></div></div>
+                                        <div><span>地形起伏度 RIX</span><strong>0.219</strong><div id="chart-multi-4"></div></div>
+                                        <div><span>地形位置指数 TPI（m）</span><strong>-41.90</strong><div id="chart-multi-5"></div></div>
+                                    </div>
+                                    <div class="geo-profile-scale-category" x-show="activeProfileMetric === 'landcover'">
+                                        <div class="geo-profile-scale-category__heading">地表覆盖多尺度指标 <span x-text="profileScale"></span> 范围</div>
+                                        <div class="geo-profile-landcover-metrics">
+                                            <article class="geo-profile-donut-metric">
+                                                <div class="geo-profile-donut geo-profile-donut--land"><span>地类面积占比</span></div>
+                                                <div><span>主导地类</span><strong>城市/建成区</strong></div>
+                                            </article>
+                                            <article class="geo-profile-ui-metric">
+                                                <span>异质性等级</span><strong>中等</strong>
+                                            </article>
+                                            <article class="geo-profile-ui-metric">
+                                                <span>香农景观熵</span><strong>0.978</strong>
+                                            </article>
+                                        </div>
+                                    </div>
+                                    <div class="geo-profile-scale-category" x-show="activeProfileMetric === 'water'">
+                                        <div class="geo-profile-scale-category__heading">水体环境多尺度指标 <span x-text="profileScale"></span> 范围</div>
+                                        <div class="geo-profile-water-metrics">
+                                            <article class="geo-profile-donut-metric">
+                                                <div class="geo-profile-donut geo-profile-donut--lake"><span>3.10%<small>湖库水域</small></span></div>
+                                                <div><span>湖库水域占比</span><strong>3.10%</strong></div>
+                                            </article>
+                                            <article class="geo-profile-donut-metric">
+                                                <div class="geo-profile-donut geo-profile-donut--wetland"><span>0.30%<small>天然湿地</small></span></div>
+                                                <div><span>天然湿地占比</span><strong>0.30%</strong></div>
+                                            </article>
+                                            <article class="geo-profile-river-metric">
+                                                <div><span>河网密度</span><strong>0.70 <em>km/km²</em></strong></div>
+                                                <div class="geo-profile-river-bars"><i style="height:42%"><b>2km</b></i><i style="height:78%"><b>5km</b></i><i style="height:58%"><b>10km</b></i></div>
+                                            </article>
+                                            <article class="geo-profile-water-stat"><span>河流总长（5km）</span><strong>17.50 <em>km</em></strong></article>
+                                            <article class="geo-profile-water-stat"><span>干流密度（5km）</span><strong>0.32 <em>km/km²</em></strong></article>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+
+                        <div x-show="geoDetailTab === 'preview'" x-cloak class="flex-1 flex min-h-0">
+                            <!-- Left Column: Node Items -->
+                            <div class="w-[280px] flex flex-col border-r border-dark-border bg-dark-900 shrink-0">
+                                <div class="flex items-center justify-between px-4 py-3 border-b border-dark-border">
+                                    <h3 class="text-sm font-medium text-white">节点项目</h3>
+                                    <button class="text-slate-400 hover:text-white transition"><i class="ph ph-caret-line-left"></i></button>
+                                </div>
+                                <div class="p-3">
+                                    <div class="relative flex items-center">
+                                        <i class="ph ph-magnifying-glass absolute left-3 text-slate-500"></i>
+                                        <input type="text" placeholder="搜索名称" class="w-full bg-dark-800 border border-dark-border rounded pl-8 pr-8 py-1.5 text-xs text-white focus:outline-none focus:border-slate-500">
+                                        <div class="absolute right-2 flex items-center gap-1">
+                                            <button class="text-slate-500 hover:text-white px-1"><i class="ph ph-funnel"></i></button>
+                                            <button class="text-slate-500 hover:text-white px-1"><i class="ph ph-sort-ascending"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center px-3 border-b border-dark-border">
+                                    <button class="flex-1 pb-2 text-[11px] text-slate-200 border-b-2 border-slate-300">全部节点</button>
+                                    <button class="flex-1 pb-2 text-[11px] text-slate-500 border-b-2 border-transparent hover:text-slate-300">地理地形</button>
+                                    <button class="flex-1 pb-2 text-[11px] text-slate-500 border-b-2 border-transparent hover:text-slate-300">海洋气候</button>
+                                </div>
+                                <div class="flex-1 overflow-y-auto p-2">
+                                    <template x-for="i in 5">
+                                        <div class="flex items-center gap-2 px-2 py-2 hover:bg-dark-800 rounded cursor-pointer group">
+                                            <div class="w-1 h-1 rounded-full bg-red-500 shrink-0"></div>
+                                            <div class="text-[11px] text-slate-300 truncate group-hover:text-white uppercase tracking-wider font-mono">FIVE HOURLY WIND SPEED TIME SE...</div>
+                                        </div>
+                                    </template>
+                                    <div class="px-2 py-2 text-[11px] text-slate-400 mt-2">基于 LSTM 的深度学习模型</div>
+                                    <template x-for="item in ['DIRECT', 'DIRMO', 'DIRREC', 'GA+RS 超参数优化', 'MIMO', 'RECURSIVE']">
+                                        <div class="flex items-center gap-2 px-2 py-2 hover:bg-dark-800 rounded cursor-pointer group">
+                                            <div class="w-1 h-1 rounded-full bg-blue-500 shrink-0"></div>
+                                            <div class="text-[11px] text-slate-300 truncate group-hover:text-white uppercase tracking-wider font-mono" x-text="item"></div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Center Column: Graph Canvas -->
+                            <div class="flex-1 flex flex-col min-w-0 bg-dark-950 relative">
+                                <div class="absolute top-4 left-4 right-4 flex items-center justify-between z-10 pointer-events-none">
+                                    <div class="flex items-center gap-2 bg-dark-800/80 backdrop-blur border border-dark-border rounded p-1 pointer-events-auto">
+                                        <button class="px-3 py-1 rounded text-[11px] text-slate-400 hover:text-slate-200 flex items-center gap-1.5">
+                                            <i class="ph ph-cube text-sm"></i> 3D
+                                        </button>
+                                    </div>
+
+                                    <div class="flex items-center gap-2 bg-dark-800/80 backdrop-blur border border-dark-border rounded p-1 pointer-events-auto">
+                                        <button class="w-7 h-6 flex items-center justify-center rounded text-slate-400 hover:bg-dark-700 hover:text-slate-200"><i class="ph ph-magnifying-glass-plus text-sm"></i></button>
+                                        <button class="w-7 h-6 flex items-center justify-center rounded text-slate-400 hover:bg-dark-700 hover:text-slate-200"><i class="ph ph-magnifying-glass-minus text-sm"></i></button>
+                                        <div class="w-px h-3 bg-dark-border mx-1"></div>
+                                        <button class="w-7 h-6 flex items-center justify-center rounded text-slate-400 hover:bg-dark-700 hover:text-slate-200"><i class="ph ph-crosshair text-sm"></i></button>
+                                        <button class="flex items-center gap-1.5 px-2 py-1 rounded text-[11px] text-slate-400 hover:bg-dark-700 hover:text-slate-200">
+                                            <i class="ph ph-eye-slash text-sm"></i> 隐藏属性
+                                        </button>
+                                        <div class="w-px h-3 bg-dark-border mx-1"></div>
+                                        <button class="w-7 h-6 flex items-center justify-center rounded text-slate-400 hover:bg-dark-700 hover:text-slate-200"><i class="ph ph-arrows-out text-sm"></i></button>
+                                    </div>
+                                </div>
+                                <div id="geo-detail-graph" class="w-full h-full"></div>
+                            </div>
+
+                            <!-- Right Column: Node Details -->
+                            <div class="w-[300px] flex flex-col border-l border-dark-border bg-dark-900 shrink-0">
+                                <div class="flex items-center justify-between px-4 py-3 border-b border-dark-border">
+                                    <h3 class="text-sm font-medium text-white">节点详情</h3>
+                                    <div class="flex items-center gap-3">
+                                        <button class="text-indigo-400 hover:text-indigo-300 transition"><i class="ph ph-pencil-simple text-sm"></i></button>
+                                        <button class="text-slate-400 hover:text-white transition"><i class="ph ph-caret-line-right text-sm"></i></button>
+                                    </div>
+                                </div>
+
+                                <div class="flex-1 overflow-y-auto p-4">
+                                    <div class="flex items-start gap-3 mb-6">
+                                        <div class="w-8 h-8 rounded-full border border-red-500/50 flex items-center justify-center bg-red-500/10 text-red-500 shrink-0 mt-0.5"></div>
+                                        <div>
+                                            <div class="text-[15px] font-medium text-white mb-2" x-text="currentGeoRecord?.name || '佛冈'"></div>
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="text-[10px] px-2 py-0.5 bg-dark-800 border border-dark-border text-slate-400 rounded">类</span>
+                                                <span class="text-[10px] px-2 py-0.5 bg-dark-800 border border-dark-border text-slate-400 rounded">1级</span>
+                                                <span class="text-[10px] px-2 py-0.5 bg-dark-800 border border-dark-border text-slate-400 rounded">站点</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-5">
+                                        <div class="flex items-center justify-between mb-2.5">
+                                            <h4 class="text-xs font-medium text-slate-300">节点描述</h4>
+                                            <i class="ph ph-caret-up text-slate-500 text-[10px]"></i>
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 bg-dark-800 p-3 rounded border border-dark-border leading-relaxed">
+                                            所有维度和要素均通过站点节点统一链接。
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-5">
+                                        <div class="flex items-center justify-between mb-2.5">
+                                            <h4 class="text-xs font-medium text-slate-300">节点属性</h4>
+                                            <i class="ph ph-caret-up text-slate-500 text-[10px]"></i>
+                                        </div>
+                                        <div class="space-y-0.5">
+                                            <div class="flex items-center justify-between py-2 border-b border-dark-border/40">
+                                                <span class="text-[11px] text-slate-500">站名</span>
+                                                <span class="text-[11px] text-slate-300" x-text="currentGeoRecord?.name || '佛冈'"></span>
+                                            </div>
+                                            <div class="flex items-center justify-between py-2 border-b border-dark-border/40">
+                                                <span class="text-[11px] text-slate-500">站号</span>
+                                                <span class="text-[11px] text-slate-300 font-mono" x-text="currentGeoRecord?.id || '590870'"></span>
+                                            </div>
+                                            <div class="flex items-center justify-between py-2 border-b border-dark-border/40">
+                                                <span class="text-[11px] text-slate-500">坐标</span>
+                                                <span class="text-[11px] text-slate-300 font-mono">23.883°N, 113.517°E</span>
+                                            </div>
+                                            <div class="flex items-center justify-between py-2 border-b border-dark-border/40">
+                                                <span class="text-[11px] text-slate-500">站址海拔</span>
+                                                <span class="text-[11px] text-slate-300 font-mono">68m</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-5">
+                                        <div class="flex items-center justify-between mb-2.5">
+                                            <h4 class="text-xs font-medium text-slate-300">数据源</h4>
+                                            <i class="ph ph-caret-up text-slate-500 text-[10px]"></i>
+                                        </div>
+                                        <div class="flex items-center justify-between py-1">
+                                            <span class="text-[11px] text-slate-400 bg-dark-800 px-2.5 py-1 rounded font-mono">chinai_isd_output</span>
+                                            <span class="text-[11px] text-slate-500 font-mono">2024</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-5">
+                                        <div class="flex items-center justify-between mb-2.5">
+                                            <h4 class="text-xs font-medium text-slate-300">节点关系</h4>
+                                            <i class="ph ph-caret-up text-slate-500 text-[10px]"></i>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <div class="flex items-center justify-between py-2 border-b border-dark-border/40">
+                                                <div class="flex items-center gap-1.5 text-[11px] text-slate-500">
+                                                    <i class="ph ph-link text-xs"></i> 包含 &rarr;
+                                                </div>
+                                                <span class="text-[10px] px-2 py-0.5 bg-dark-800 border border-dark-border text-slate-300 rounded-full flex items-center gap-1.5">
+                                                    <span class="w-1 h-1 rounded-full bg-blue-500"></span> 地形结构
+                                                </span>
+                                            </div>
+                                            <div class="flex items-center justify-between py-2 border-b border-dark-border/40">
+                                                <div class="flex items-center gap-1.5 text-[11px] text-slate-500">
+                                                    <i class="ph ph-link text-xs"></i> 包含 &rarr;
+                                                </div>
+                                                <span class="text-[10px] px-2 py-0.5 bg-dark-800 border border-dark-border text-slate-300 rounded-full flex items-center gap-1.5">
+                                                    <span class="w-1 h-1 rounded-full bg-blue-500"></span> 地表覆盖与粗糙度
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div x-show="geoDetailTab === 'version'" x-cloak class="geo-version-layout">
+                            <div class="geo-version-timeline">
+                                <template x-for="version in geoVersionHistory" :key="version.version">
+                                    <div class="geo-version-item" :class="version.isCurrent ? 'is-current' : ''">
+                                        <div class="geo-version-item__rail">
+                                            <span class="geo-version-item__dot"></span>
+                                        </div>
+                                        <div class="geo-version-item__card">
+                                            <div class="flex items-start justify-between gap-4">
+                                                <div>
+                                                    <div class="flex items-center gap-2 mb-1.5">
+                                                        <span class="geo-version-item__title" x-text="version.version"></span>
+                                                        <span class="geo-version-badge" :class="'is-' + version.statusTone" x-text="version.status"></span>
+                                                    </div>
+                                                    <div class="text-sm text-slate-200 mb-2" x-text="version.title"></div>
+                                                    <div class="flex items-center gap-3 text-xs text-slate-500">
+                                                        <span><i class="ph ph-user mr-1"></i> 保存者ID</span>
+                                                        <span class="text-slate-300 font-mono" x-text="version.entityId"></span>
+                                                        <span><i class="ph ph-clock mr-1"></i><span x-text="version.timestamp"></span></span>
+                                                    </div>
+                                                </div>
+                                                <div class="flex items-center gap-2 shrink-0">
+                                                    <button class="geo-version-action">查看</button>
+                                                    <button class="geo-version-action">导出</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <div class="geo-version-compare">
+                                <div class="geo-version-compare__title">版本对比</div>
+                                <div class="grid grid-cols-2 gap-3 mb-4">
+                                    <div>
+                                        <div class="geo-version-compare__label">新版本</div>
+                                        <select x-model="geoVersionNew" class="geo-version-select">
+                                            <option value="V4">V4</option>
+                                            <option value="V3">V3</option>
+                                            <option value="V2">V2</option>
+                                            <option value="V1">V1</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <div class="geo-version-compare__label">旧版本</div>
+                                        <select x-model="geoVersionOld" class="geo-version-select">
+                                            <option value="V3">V3</option>
+                                            <option value="V2">V2</option>
+                                            <option value="V1">V1</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="geo-version-compare__label mb-2">变更内容</div>
+                                <div class="geo-version-change-chip" x-text="currentGeoVersionComparison.changeLabel"></div>
+
+                                <div class="geo-version-compare__label mt-5 mb-2" x-text="'变更统计（' + geoVersionNew + ' - ' + geoVersionOld + '）'"></div>
+                                <div class="space-y-2">
+                                    <template x-for="stat in currentGeoVersionComparison.stats" :key="stat.label">
+                                        <div class="geo-version-stat-row">
+                                            <span class="text-slate-300" x-text="stat.label"></span>
+                                            <span :class="'is-' + stat.tone" class="geo-version-stat-row__value" x-text="stat.value"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="maps/map-data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
