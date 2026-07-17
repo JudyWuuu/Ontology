@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="zh-CN" class="dark">
 <head>
     <meta charset="UTF-8">
@@ -596,9 +596,11 @@
                                     <span class="text-[10px] uppercase font-bold tracking-wider">返回</span>
                                 </button>
                                 <div>
-                                    <h2 class="text-[22px] font-semibold text-white leading-none">洞察自动化测试-1540</h2>
-                                    <div class="mt-2 text-xs text-slate-400">
-                                        创建者：admin - 更新时间：2026-07-08 16:00:45
+                                    <h2 class="text-[22px] font-semibold text-white leading-none" x-text="currentGeoDetailTitle"></h2>
+                                    <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400">
+                                        <span>创建者：<span x-text="currentGeoRecord?.creator || 'admin'"></span></span>
+                                        <span>版本号：<span x-text="currentGeoVersionLabel"></span></span>
+                                        <span>更新时间：<span x-text="currentGeoRecord?.updatedAt || '2026-07-08 16:00:45'"></span></span>
                                     </div>
                                 </div>
                             </div>
@@ -644,15 +646,15 @@
                                     <i class="ph ph-projector-screen-chart"></i>
                                     本体图谱
                                 </button>
-                                <button @click="switchGeoDetailTab('version')" :class="geoDetailTab === 'version' ? 'text-indigo-400 border-indigo-400' : 'text-slate-400 border-transparent hover:text-slate-200'" class="flex items-center gap-2 py-3 border-b-2 transition text-sm">
-                                    <i class="ph ph-clock-counter-clockwise"></i>
-                                    版本管理
-                                </button>
                             </div>
-                            <div class="flex items-center">
-                                <button class="flex items-center gap-2 px-3 py-1.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 hover:bg-indigo-500/20 transition text-sm">
-                                    <i class="ph ph-floppy-disk-back"></i>
-                                    保存版本
+                            <div class="flex items-center gap-2">
+                                <button @click="openGeoVersionPanel()" class="geo-version-action">
+                                    <i class="ph ph-eye text-sm"></i>
+                                    查看
+                                </button>
+                                <button @click="exportGeoVersion()" class="geo-version-action">
+                                    <i class="ph ph-download-simple text-sm"></i>
+                                    导出
                                 </button>
                             </div>
                         </div>
@@ -1065,8 +1067,17 @@
                                         <div class="geo-profile-scale-category__heading">地表覆盖多尺度指标 <span x-text="profileScale"></span> 范围</div>
                                         <div class="geo-profile-landcover-metrics">
                                             <article class="geo-profile-donut-metric">
-                                                <div class="geo-profile-donut geo-profile-donut--land"><span>地类面积占比</span></div>
                                                 <div><span>主导地类</span><strong>城市/建成区</strong></div>
+                                                <div class="geo-profile-donut-row">
+                                                    <div class="geo-profile-donut geo-profile-donut--land"><span>地类面积占比</span></div>
+                                                    <div class="geo-profile-donut-legend geo-profile-donut-legend--land">
+                                                        <span><i class="is-forest"></i>林地/森林</span>
+                                                        <span><i class="is-urban"></i>城市/建成区</span>
+                                                        <span><i class="is-farm"></i>农田</span>
+                                                        <span><i class="is-water"></i>水体</span>
+                                                        <span><i class="is-other"></i>其他</span>
+                                                    </div>
+                                                </div>
                                             </article>
                                             <article class="geo-profile-ui-metric">
                                                 <span>异质性等级</span><strong>中等</strong>
@@ -1080,12 +1091,24 @@
                                         <div class="geo-profile-scale-category__heading">水体环境多尺度指标 <span x-text="profileScale"></span> 范围</div>
                                         <div class="geo-profile-water-metrics">
                                             <article class="geo-profile-donut-metric">
-                                                <div class="geo-profile-donut geo-profile-donut--lake"><span>3.10%<small>湖库水域</small></span></div>
                                                 <div><span>湖库水域占比</span><strong>3.10%</strong></div>
+                                                <div class="geo-profile-donut-row">
+                                                    <div class="geo-profile-donut geo-profile-donut--lake"><span>3.10%<small>湖库水域</small></span></div>
+                                                    <div class="geo-profile-donut-legend">
+                                                        <span><i class="is-water"></i>湖库水域</span>
+                                                        <span><i class="is-bg"></i>其他区域</span>
+                                                    </div>
+                                                </div>
                                             </article>
                                             <article class="geo-profile-donut-metric">
-                                                <div class="geo-profile-donut geo-profile-donut--wetland"><span>0.30%<small>天然湿地</small></span></div>
                                                 <div><span>天然湿地占比</span><strong>0.30%</strong></div>
+                                                <div class="geo-profile-donut-row">
+                                                    <div class="geo-profile-donut geo-profile-donut--wetland"><span>0.30%<small>天然湿地</small></span></div>
+                                                    <div class="geo-profile-donut-legend">
+                                                        <span><i class="is-wetland"></i>天然湿地</span>
+                                                        <span><i class="is-bg"></i>其他区域</span>
+                                                    </div>
+                                                </div>
                                             </article>
                                             <article class="geo-profile-river-metric">
                                                 <div><span>河网密度</span><strong>0.70 <em>km/km²</em></strong></div>
@@ -1167,7 +1190,6 @@
                                 <div class="flex items-center justify-between px-4 py-3 border-b border-dark-border">
                                     <h3 class="text-sm font-medium text-white">节点详情</h3>
                                     <div class="flex items-center gap-3">
-                                        <button class="text-indigo-400 hover:text-indigo-300 transition"><i class="ph ph-pencil-simple text-sm"></i></button>
                                         <button class="text-slate-400 hover:text-white transition"><i class="ph ph-caret-line-right text-sm"></i></button>
                                     </div>
                                 </div>
@@ -1281,8 +1303,8 @@
                                                     </div>
                                                 </div>
                                                 <div class="flex items-center gap-2 shrink-0">
-                                                    <button class="geo-version-action">查看</button>
-                                                    <button class="geo-version-action">导出</button>
+                                                    <button @click="openGeoVersionPanel(version)" class="geo-version-action">查看</button>
+                                                    <button @click="exportGeoVersion(version)" class="geo-version-action">导出</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -1326,6 +1348,55 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div x-show="geoVersionModalOpen" x-cloak x-transition.opacity class="geo-version-modal-mask" @click.self="closeGeoVersionPanel()" @keydown.escape.window="closeGeoVersionPanel()">
+                            <div class="geo-version-modal" @click.stop>
+                                <div class="geo-version-modal__header">
+                                    <div class="geo-version-modal__title">查看</div>
+                                    <button @click="closeGeoVersionPanel()" class="geo-version-modal__close" aria-label="关闭">
+                                        <i class="ph ph-x text-xl"></i>
+                                    </button>
+                                </div>
+
+                                <div class="geo-version-modal__body">
+                                    <div class="geo-version-modal__meta">
+                                        <div class="geo-version-modal__meta-item">
+                                            <div class="geo-version-modal__meta-label">Version_id</div>
+                                            <div class="geo-version-modal__meta-value geo-version-modal__meta-value--mono" x-text="currentGeoVersionEntry?.versionId || '--'"></div>
+                                        </div>
+                                        <div class="geo-version-modal__meta-item">
+                                            <div class="geo-version-modal__meta-label">创建时间</div>
+                                            <div class="geo-version-modal__meta-value" x-text="currentGeoVersionEntry?.createdAt || '--'"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="geo-version-modal__panel">
+                                        <div class="geo-version-modal__panel-title">版本 JSON（来自 getOntologyVersionJson）</div>
+                                        <div class="geo-version-modal__code-wrap">
+                                            <div class="geo-version-modal__code-toolbar">
+                                                <div class="geo-version-modal__line-count">共 <span x-text="currentGeoVersionLineCount"></span> 行</div>
+                                                <button @click="copyGeoVersionJson()" class="geo-version-modal__copy">
+                                                    <i class="ph ph-copy text-base"></i>
+                                                    复制
+                                                </button>
+                                            </div>
+                                            <div class="geo-version-modal__code">
+                                                <template x-for="(line, index) in currentGeoVersionJsonLines" :key="index">
+                                                    <div class="geo-version-modal__code-line">
+                                                        <span class="geo-version-modal__line-no" x-text="index + 1"></span>
+                                                        <span class="geo-version-modal__line-text" x-text="line || ' '"></span>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="geo-version-modal__footer">
+                                    <button @click="closeGeoVersionPanel()" class="geo-version-modal__primary">关闭</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1333,6 +1404,7 @@
     </main>
 
     <script src="maps/map-data.js"></script>
+    <script src="station_points_national.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

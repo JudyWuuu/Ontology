@@ -660,11 +660,15 @@ document.addEventListener('alpine:init', () => {
         geoDetailTab: 'profile',
         selectedGeoRecord: null,
         geoDetailGraphInstance: null,
+        geoVersionModalOpen: false,
+        activeGeoVersionKey: null,
         geoVersionNew: 'V4',
         geoVersionOld: 'V3',
         geoVersionHistory: [
             {
                 version: 'V4',
+                versionId: '1a28aa14-6796-472d-8e7e-9b3a2e6041c6',
+                createdAt: '2026-07-08T15:47:05+08:00',
                 status: '草稿',
                 statusTone: 'draft',
                 title: '佛冈本体快照',
@@ -675,6 +679,8 @@ document.addEventListener('alpine:init', () => {
             },
             {
                 version: 'V3',
+                versionId: '8f4db11a-1b87-4fcb-8475-f2d9737f9cf4',
+                createdAt: '2026-06-23T17:36:41+08:00',
                 status: '版本快照',
                 statusTone: 'snapshot',
                 title: '回溯全版本: D00DC34A-FB55-453B-BD96-BAFD018BADE6',
@@ -685,6 +691,8 @@ document.addEventListener('alpine:init', () => {
             },
             {
                 version: 'V2',
+                versionId: '4cf6a5ae-7b4d-445d-b4d2-6b4ed2f25579',
+                createdAt: '2026-06-23T17:34:17+08:00',
                 status: '版本快照',
                 statusTone: 'snapshot',
                 title: '佛冈本体快照',
@@ -695,6 +703,8 @@ document.addEventListener('alpine:init', () => {
             },
             {
                 version: 'V1',
+                versionId: 'c8c5b442-a91a-4ef0-8fdb-4b16b28f0f54',
+                createdAt: '2026-06-23T17:33:46+08:00',
                 status: '版本快照',
                 statusTone: 'snapshot',
                 title: '佛冈初始化导入',
@@ -1283,6 +1293,50 @@ document.addEventListener('alpine:init', () => {
             return this.selectedGeoRecord || this.geoOntologies.find(item => item.id === '590870') || this.geoOntologies[0] || null;
         },
 
+        get currentGeoDetailTitle() {
+            return this.currentGeoRecord?.name || '地球本体详情';
+        },
+
+        get currentGeoVersionLabel() {
+            const currentHistoryVersion = this.geoVersionHistory.find((item) => item.isCurrent)?.version;
+            if (currentHistoryVersion) {
+                return currentHistoryVersion;
+            }
+
+            const version = this.currentGeoRecord?.version;
+            if (version === undefined || version === null || version === '') {
+                return 'V1';
+            }
+
+            if (typeof version === 'string' && /^v/i.test(version)) {
+                return version.toUpperCase();
+            }
+
+            return `V${version}`;
+        },
+
+        get currentGeoVersionEntry() {
+            return this.geoVersionHistory.find((item) => item.version === this.activeGeoVersionKey)
+                || this.geoVersionHistory.find((item) => item.isCurrent)
+                || this.geoVersionHistory[0]
+                || null;
+        },
+
+        get currentGeoVersionJson() {
+            const record = this.currentGeoRecord;
+            if (!record) return '{}';
+
+            return JSON.stringify(this.cloneGeoSampleData(record), null, 2);
+        },
+
+        get currentGeoVersionJsonLines() {
+            return this.currentGeoVersionJson.split('\n');
+        },
+
+        get currentGeoVersionLineCount() {
+            return this.currentGeoVersionJsonLines.length;
+        },
+
         get currentGeoVersionComparison() {
             return this.geoVersionComparisons[`${this.geoVersionNew}|${this.geoVersionOld}`]
                 || this.geoVersionComparisons[`${this.geoVersionOld}|${this.geoVersionNew}`]
@@ -1290,14 +1344,18 @@ document.addEventListener('alpine:init', () => {
         },
 
         get geoStats() {
+            const coverageStations = this.getGeoMapStations();
             const provinces = new Set();
             let concepts = 0;
+            coverageStations.forEach(item => {
+                const provinceName = this.getGeoProvinceName(item);
+                if (provinceName) provinces.add(provinceName);
+            });
             this.geoOntologies.forEach(item => {
-                if (item.region) provinces.add(item.region.split(' ')[0]);
                 if (item.concepts) concepts += parseInt(item.concepts.toString().replace(/,/g, '')) || 0;
             });
             return {
-                stationCount: this.geoOntologies.length,
+                stationCount: coverageStations.length,
                 provinceCount: provinces.size,
                 ontologyCount: this.geoOntologies.length, // assuming 1 ontology per station for now, or you can compute based on unique ontology names
                 conceptCount: concepts.toLocaleString()
@@ -2355,6 +2413,52 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
+        openGeoVersionPanel(version = null) {
+            this.activeGeoVersionKey = version?.version || this.currentGeoVersionLabel;
+            this.geoVersionModalOpen = true;
+        },
+
+        closeGeoVersionPanel() {
+            this.geoVersionModalOpen = false;
+        },
+
+        async copyGeoVersionJson() {
+            if (!navigator?.clipboard?.writeText) return;
+
+            try {
+                await navigator.clipboard.writeText(this.currentGeoVersionJson);
+            } catch (error) {
+                console.error('Failed to copy geo version json', error);
+            }
+        },
+
+        exportGeoVersion(version = null) {
+            const record = this.currentGeoRecord;
+            if (!record) return;
+            const versionEntry = version || this.currentGeoVersionEntry;
+
+            const payload = {
+                exportedAt: new Date().toISOString(),
+                version: versionEntry?.version || this.currentGeoVersionLabel,
+                versionId: versionEntry?.versionId || '',
+                record,
+                ontology: this.cloneGeoSampleData(record)
+            };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], {
+                type: 'application/json;charset=utf-8'
+            });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const safeName = (record.name || 'geo_ontology').replace(/[\\/:*?"<>|\s]+/g, '_');
+
+            link.href = url;
+            link.download = `${safeName}_${versionEntry?.version || this.currentGeoVersionLabel}.json`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        },
+
         closeGeoDetail() {
             this.geoPageMode = 'main';
             this.geoDetailTab = 'profile';
@@ -2715,6 +2819,10 @@ document.addEventListener('alpine:init', () => {
                 this.geoChartInstance.on('click', async (params) => {
                     if (params.seriesType === 'effectScatter' && params.data?.item) {
                         this.openGeoDetail(params.data.item, 'profile');
+                        return;
+                    }
+                    if (params.seriesType === 'effectScatter' && this.currentGeoRegion.level === 0 && params.name) {
+                        this.drillToRegion(params.name);
                         return;
                     }
                     if (params.componentType === 'geo' && params.name) {
@@ -3397,8 +3505,40 @@ document.addEventListener('alpine:init', () => {
             });
         },
 
-        parseGeoLatLng(latlng) {
-            const [latString = '', lonString = ''] = String(latlng || '').split(',');
+        getGeoMapStations() {
+            return Array.isArray(window.NATIONAL_GEO_STATION_POINTS) && window.NATIONAL_GEO_STATION_POINTS.length
+                ? window.NATIONAL_GEO_STATION_POINTS
+                : this.geoOntologies;
+        },
+
+        getGeoProvinceName(station) {
+            if (station?.province) return station.province;
+            const region = String(station?.region || '');
+            return region.split(/[\\/]/)[0] || '';
+        },
+
+        getGeoStationMetric(item, index = 0) {
+            const metric = Number(item?.concepts);
+            return Number.isFinite(metric) ? metric : 180 + ((index * 37) % 160);
+        },
+
+        getGeoStationLatLngLabel(item, lat, lon) {
+            if (item?.latlng) return item.latlng;
+            if (!Number.isFinite(lat) || !Number.isFinite(lon)) return '未知';
+            return `${lat.toFixed(3)}, ${lon.toFixed(3)}`;
+        },
+
+        parseGeoLatLng(station) {
+            if (station && typeof station === 'object') {
+                const lat = Number(station.lat);
+                const lon = Number(station.lon);
+                if (Number.isFinite(lat) && Number.isFinite(lon)) {
+                    return { lat, lon };
+                }
+                return this.parseGeoLatLng(station.latlng || '');
+            }
+
+            const [latString = '', lonString = ''] = String(station || '').split(',');
             const lat = parseFloat(latString);
             const lon = parseFloat(lonString);
             return { lat, lon };
@@ -3409,10 +3549,15 @@ document.addEventListener('alpine:init', () => {
                 .slice(1)
                 .filter((item) => item.level <= 2)
                 .map((item) => item.name);
-            return this.geoOntologies
-                .filter(item => activeNames.every(name => item.region.includes(name)))
+            return this.getGeoMapStations()
+                .filter((item) => activeNames.every((name) => {
+                    const regionText = String(item.region || '');
+                    return regionText.includes(name)
+                        || String(item.province || '').includes(name)
+                        || String(item.city || '').includes(name);
+                }))
                 .map((item, index) => {
-                    const { lat, lon } = this.parseGeoLatLng(item.latlng);
+                    const { lat, lon } = this.parseGeoLatLng(item);
                     return { item, index, lat, lon };
                 })
                 .filter(point => Number.isFinite(point.lat) && Number.isFinite(point.lon));
@@ -3422,7 +3567,7 @@ document.addEventListener('alpine:init', () => {
             if (this.activeGeoLayerKey !== 'terrain_dem_elevation') return [];
 
             return stations.map(({ item, index, lat, lon }) => {
-                const elevation = 120 + ((index * 67 + item.concepts) % 520);
+                const elevation = 120 + ((index * 67 + this.getGeoStationMetric(item, index)) % 520);
                 const hue = Math.max(0, Math.min(1, (elevation - 120) / 520));
                 const color = hue > 0.72
                     ? '#fde047'
@@ -3447,6 +3592,53 @@ document.addEventListener('alpine:init', () => {
             });
         },
 
+        findGeoRegionCountByName(regionName, countMap) {
+            if (!regionName) return 0;
+            for (const [key, value] of Object.entries(countMap || {})) {
+                if (regionName.includes(key) || key.includes(regionName)) {
+                    return value;
+                }
+            }
+            return 0;
+        },
+
+        buildProvinceAggregateData(provinceCountMap) {
+            if (this.currentGeoRegion.level !== 0 || !Array.isArray(this.currentGeoJson?.features)) {
+                return [];
+            }
+
+            return this.currentGeoJson.features
+                .map((feature) => {
+                    const name = feature.properties?.name || '';
+                    const center = feature.properties?.center || feature.properties?.centroid;
+                    const count = this.findGeoRegionCountByName(name, provinceCountMap);
+
+                    if (!name || !Array.isArray(center) || center.length < 2 || count <= 0) {
+                        return null;
+                    }
+
+                    const [lon, lat] = center;
+                    const digitCount = String(count).length;
+                    const textFitSize = digitCount >= 3 ? 24 : digitCount === 2 ? 20 : 16;
+                    const dataDrivenSize = 8 + Math.sqrt(count) * 0.95;
+                    const symbolSize = Math.max(textFitSize, Math.min(30, dataDrivenSize));
+
+                    return {
+                        name,
+                        value: [lon, lat, count],
+                        count,
+                        symbolSize,
+                        itemStyle: {
+                            color: '#38bdf8',
+                            shadowBlur: 20,
+                            shadowColor: 'rgba(56, 189, 248, 0.7)',
+                            opacity: 0.92
+                        }
+                    };
+                })
+                .filter(Boolean);
+        },
+
         getGeoMapOption(mapName, level) {
             const visibleStations = this.getVisibleGeoStations();
             const elevationRegions = this.buildGeoElevationSurfaceStyle();
@@ -3459,10 +3651,12 @@ document.addEventListener('alpine:init', () => {
 
             const stationData = visibleStations.map(({ item, lat, lon }) => {
                 const isActive = this.activeGeoStation && this.activeGeoStation.id === item.id;
+                const metric = this.getGeoStationMetric(item);
                 return {
                     name: item.name,
-                    value: [lon, lat, item.concepts],
+                    value: [lon, lat, metric],
                     item,
+                    latlngLabel: this.getGeoStationLatLngLabel(item, lat, lon),
                     symbolSize: isActive ? activeSymbolSize : defaultSymbolSize,
                     itemStyle: isActive ? { color: '#facc15', shadowBlur: 20, shadowColor: 'rgba(250, 204, 21, 0.95)' } : { color: defaultColor, shadowBlur: defaultBlur, shadowColor: defaultShadow }
                 };
@@ -3470,36 +3664,56 @@ document.addEventListener('alpine:init', () => {
             
             // Calculate station count per province
             const provinceCountMap = {};
-            this.geoOntologies.forEach(station => {
-                if (station.region) {
-                    const prov = station.region.split(' ')[0];
+            this.getGeoMapStations().forEach((station) => {
+                const prov = this.getGeoProvinceName(station);
+                if (prov) {
                     provinceCountMap[prov] = (provinceCountMap[prov] || 0) + 1;
                 }
             });
+            const provinceAggregateData = this.buildProvinceAggregateData(provinceCountMap);
 
             const series = [
                 {
                     type: 'effectScatter',
                     coordinateSystem: 'geo',
-                    data: stationData,
-                    symbolSize: level === 0 ? 4 : (hasElevationLayer ? 8 : 12),
-                    silent: level === 0, // Disable marker click/hover on level 0
+                    data: level === 0 ? provinceAggregateData : stationData,
+                    symbolSize: (value, params) => params?.data?.symbolSize || (level === 0 ? 4 : (hasElevationLayer ? 8 : 12)),
+                    silent: false,
                     label: {
-                        show: level === 1 || level === 2,
-                        formatter: '{b}',
-                        position: 'bottom',
-                        distance: 6,
+                        show: true,
+                        formatter: (params) => {
+                            if (level === 0) {
+                                return `{count|${params.data.count}}`;
+                            }
+                            return params.name;
+                        },
+                        position: level === 0 ? 'inside' : 'bottom',
+                        distance: level === 0 ? 0 : 6,
                         color: '#e2e8f0',
-                        fontSize: 11,
-                        textBorderColor: '#02091a',
-                        textBorderWidth: 3
+                        fontSize: level === 0 ? 10 : 11,
+                        textBorderColor: level === 0 ? 'transparent' : '#02091a',
+                        textBorderWidth: level === 0 ? 0 : 3,
+                        rich: {
+                            count: {
+                                color: '#ffffff',
+                                fontSize: 12,
+                                fontWeight: 700,
+                                lineHeight: 14
+                            }
+                        }
                     },
                     labelLayout: {
-                        hideOverlap: false
+                        hideOverlap: level === 0 ? false : true
                     },
                     emphasis: {
-                        scale: level === 1 || level === 2,
-                        itemStyle: level === 1 || level === 2
+                        scale: true,
+                        itemStyle: level === 0
+                            ? {
+                                color: '#facc15',
+                                shadowBlur: 26,
+                                shadowColor: 'rgba(250, 204, 21, 0.85)'
+                            }
+                            : level === 1 || level === 2
                             ? {
                                 color: '#fb923c',
                                 shadowBlur: 24,
@@ -3508,16 +3722,24 @@ document.addEventListener('alpine:init', () => {
                             : undefined
                     },
                     rippleEffect: {
-                        scale: level === 0 ? 1 : (hasElevationLayer ? 2.4 : 3.4),
+                        scale: level === 0 ? 2.2 : (hasElevationLayer ? 2.4 : 3.4),
                         brushType: 'stroke'
                     },
-                    itemStyle: hasElevationLayer
+                    itemStyle: level === 0
+                        ? { color: '#38bdf8', shadowBlur: 14, shadowColor: 'rgba(56, 189, 248, 0.55)' }
+                        : hasElevationLayer
                         ? { color: '#e2e8f0', shadowBlur: 12, shadowColor: 'rgba(226, 232, 240, 0.55)' }
                         : { color: '#38bdf8', shadowBlur: 16, shadowColor: 'rgba(56, 189, 248, 0.95)' },
                     tooltip: {
-                        formatter: (p) => `<div class="font-medium text-blue-400 mb-1">${p.data.name}</div>
-                            <div class="text-xs text-gray-400">站点ID: ${p.data.item.id}</div>
-                            <div class="text-xs text-gray-400">经纬度: ${p.data.item.latlng || '未知'}</div>`
+                        formatter: (p) => {
+                            if (level === 0) {
+                                return `<div class="font-medium text-blue-400 mb-1">${p.data.name}</div>
+                                    <div class="text-xs text-gray-400">站点总数: ${p.data.count}</div>`;
+                            }
+                            return `<div class="font-medium text-blue-400 mb-1">${p.data.name}</div>
+                                <div class="text-xs text-gray-400">站点ID: ${p.data.item.id}</div>
+                                <div class="text-xs text-gray-400">经纬度: ${p.data.latlngLabel || '未知'}</div>`;
+                        }
                     }
                 }
             ];
@@ -3534,13 +3756,7 @@ document.addEventListener('alpine:init', () => {
                     formatter: (p) => {
                         if (p.componentType === 'geo' && level === 0) {
                             const provName = p.name;
-                            let matchedCount = 0;
-                            for (const [k, v] of Object.entries(provinceCountMap)) {
-                                if (provName.includes(k) || k.includes(provName)) {
-                                    matchedCount = v;
-                                    break;
-                                }
-                            }
+                            const matchedCount = this.findGeoRegionCountByName(provName, provinceCountMap);
                             return `<div class="flex items-center gap-2 px-1">
                                         <span class="font-medium text-white">${provName}</span>
                                         <span class="text-blue-400 font-mono font-bold">${matchedCount}</span>
@@ -3551,7 +3767,11 @@ document.addEventListener('alpine:init', () => {
                 },
                 geo: {
                     map: mapName,
-                    roam: false,
+                    roam: true,
+                    scaleLimit: {
+                        min: 1,
+                        max: 8
+                    },
                     layoutCenter: ['50%', '54%'],
                     layoutSize: level === 0 ? '88%' : '92%',
                     label: {
