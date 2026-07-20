@@ -1,39 +1,39 @@
 ﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
-<html lang="zh-CN" class="dark">
-<head>
-    <meta charset="UTF-8">
+<html lang="zh-CN" class="dark">  
+<head>  
+    <meta charset="UTF-8">  
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>洞察时空 本体智见 - 领域要素本体</title>
     <!-- Tailwind CSS -->
     <script src="vendor/tailwind-3.4.17.js"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        dark: {
-                            900: '#0f0f0f',
-                            800: '#141414',
-                            700: '#1e1e1e',
-                            600: '#2a2a2a',
-                            border: '#333333'
-                        },
-                        brand: {
-                            blue: '#3b82f6',
-                            green: '#10b981',
-                            purple: '#8b5cf6',
-                            orange: '#f59e0b'
+    <script>  
+        tailwind.config = {  
+            darkMode: 'class',  
+            theme: {  
+                extend: {  
+                    colors: {  
+                        dark: {  
+                            900: '#0f0f0f',  
+                            800: '#141414',  
+                            700: '#1e1e1e',  
+                            600: '#2a2a2a',  
+                            border: '#333333'  
+                        },  
+                        brand: {  
+                            blue: '#3b82f6',  
+                            green: '#10b981',  
+                            purple: '#8b5cf6',  
+                            orange: '#f59e0b'  
                         }
-                    },
-                    fontFamily: {
+                    },  
+                    fontFamily: {  
                         sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
                         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace'],
                     }
                 }
             }
         }
-    </script>
+    </script>  
     <!-- Alpine.js -->
     <script defer src="vendor/alpine-3.15.12.min.js"></script>
     <!-- ECharts -->
@@ -1060,7 +1060,7 @@
                                         <div><span>平均高程（m）</span><strong>109.91</strong><div id="chart-multi-1"></div></div>
                                         <div><span>高程标准差（m）</span><strong>56.70</strong><div id="chart-multi-2"></div></div>
                                         <div><span>平均坡度（°）</span><strong>10.81</strong><div id="chart-multi-3"></div></div>
-                                        <div><span>地形起伏度 RIX</span><strong>0.219</strong><div id="chart-multi-4"></div></div>
+                                        <div><span>地形崎岖指数 RIX</span><strong>0.219</strong><div id="chart-multi-4"></div></div>
                                         <div><span>地形位置指数 TPI（m）</span><strong>-41.90</strong><div id="chart-multi-5"></div></div>
                                     </div>
                                     <div class="geo-profile-scale-category" x-show="activeProfileMetric === 'landcover'">
